@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    "publicdb": "Server=aitechac.com;Initial Catalog=aitechac_AITechDTHDb;User ID=aitechac_AITechDbUser;Password=Dp23$s15o;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "localdb": "Data Source =.;Initial Catalog=AITechDTHDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+  }
+}
