@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AITechDigitalTradeHub.Data.Domain
 {
-    public enum ListingType : byte { Product = 1, Service = 2 }
+    public enum ListingType : byte { Product = 1, Service = 2, RentalEquipment = 3 }
     public enum PriceType : byte { Fixed = 1, Negotiable = 2, Range = 3 }
     public enum ListingStatus : byte { Draft = 1, Published = 2, Paused = 3, Expired = 4, Sold = 5 }
 
@@ -84,6 +84,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public Image? CoverFile { get; set; }
         public ListingProductDetails? ProductDetails { get; set; }
         public ListingServiceDetails? ServiceDetails { get; set; }
+        public EquipmentRentalDetails? EquipmentRentalDetails { get; set; }
 
         public ICollection<Image> Media { get; set; } = new List<Image>();
         public ICollection<ListingTag> ListingTags { get; set; } = new List<ListingTag>();

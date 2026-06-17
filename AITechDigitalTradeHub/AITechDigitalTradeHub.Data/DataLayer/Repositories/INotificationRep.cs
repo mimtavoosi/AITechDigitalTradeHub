@@ -23,5 +23,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Repositories
         Task<BitResultObject> RemoveNotificationAsync(long notificationId);
 
         Task<BitResultObject> ExistNotificationAsync(long notificationId);
+
+        Task<BitResultObject> MarkAllAsReadAsync(long userId);
+
+        Task<int> CountUnreadAsync(long userId);
     }
 }

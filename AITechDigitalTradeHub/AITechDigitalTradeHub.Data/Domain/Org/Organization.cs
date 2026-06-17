@@ -27,9 +27,17 @@ namespace AITechDigitalTradeHub.Data.Domain
         public bool IsVerified { get; set; }
         public OrganizationStatus Status { get; set; } = OrganizationStatus.Active;
 
+        /// <summary>آیا خریدهای اعضا باید قبل از پرداخت از کیف پول شرکت تایید شوند؟</summary>
+        public bool RequireApprovalForMemberPayments { get; set; } = true;
+
+        /// <summary>سقف پیش‌فرض خرید اعضا از اعتبار شرکت؛ null یعنی بدون سقف سیستمی.</summary>
+        public decimal? DefaultMemberPaymentLimit { get; set; }
+
         public User OwnerUser { get; set; } = default!;
         public ICollection<OrganizationMember> Members { get; set; } = new List<OrganizationMember>();
+        public ICollection<OrganizationInvitation> Invitations { get; set; } = new List<OrganizationInvitation>();
         public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Affiliation> Affiliations { get; set; } = new List<Affiliation>();
+        public ICollection<OrganizationPaymentRequest> PaymentRequests { get; set; } = new List<OrganizationPaymentRequest>();
     }
 }

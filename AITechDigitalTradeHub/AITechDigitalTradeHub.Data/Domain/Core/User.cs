@@ -40,6 +40,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public ICollection<LoginMethod> LoginMethods { get; set; } 
         public ICollection<Notification> Notifications { get; set; } // اعلان ‌های ارسال شده توسط کاربر
         public ICollection<TicketMessage> TicketMessages { get; set; } // پاسخ تیکت‌های ثبت شده توسط مدیر
+        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 
     public enum UserStatus : byte

@@ -53,6 +53,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public ServicePackage? ServicePackage { get; set; }
 
         public ICollection<OrderEvent> Events { get; set; } = new List<OrderEvent>();
+        public ICollection<OrderMilestone> Milestones { get; set; } = new List<OrderMilestone>();
     }
 
 }

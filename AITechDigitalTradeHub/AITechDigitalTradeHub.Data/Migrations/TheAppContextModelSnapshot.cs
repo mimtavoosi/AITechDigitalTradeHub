@@ -128,6 +128,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal?>("CommissionPercent")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<long>("ContractorUserId")
@@ -222,6 +223,183 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasIndex("EventName", "CreateDate");
 
                     b.ToTable("AnalyticsEvents");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ArbitrationDecision", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DecidedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DecisionText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("DecisionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DisputeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsExecuted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ReleaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("DecidedByUserId");
+
+                    b.HasIndex("DisputeId")
+                        .IsUnique();
+
+                    b.ToTable("ArbitrationDecisions");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Badge", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("IconName")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSystemBadge")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Badges");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.BadgeAssignment", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("AssignedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BadgeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("TargetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("TargetType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("TargetType", "TargetId", "BadgeId")
+                        .IsUnique();
+
+                    b.ToTable("BadgeAssignments");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Category", b =>
@@ -503,6 +681,226 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("ConversationMembers");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Course", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoverFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("DeliveryMode")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<long>("InstructorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("Level")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PriceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<DateTime?>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CoverFileId");
+
+                    b.HasIndex("InstructorUserId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "PublishedAt");
+
+                    b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte>("ProgressPercent")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("StudentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("CourseId", "StudentUserId")
+                        .IsUnique();
+
+                    b.ToTable("CourseEnrollments");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseLesson", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<byte>("ContentType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("FileUploadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPreview")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("FileUploadId");
+
+                    b.HasIndex("CourseId", "SortOrder");
+
+                    b.ToTable("CourseLessons");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Deliverable", b =>
                 {
                     b.Property<long>("ID")
@@ -554,6 +952,207 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("Deliverables");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Dispute", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("ArbitratorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("ContextId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("ContextType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OpenedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Reason")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("RespondentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ArbitratorUserId");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("RespondentUserId");
+
+                    b.HasIndex("ContextType", "ContextId", "Status");
+
+                    b.ToTable("Disputes");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.DisputeEvidence", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DisputeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("FileUploadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SubmittedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("DisputeId");
+
+                    b.HasIndex("FileUploadId");
+
+                    b.HasIndex("SubmittedByUserId");
+
+                    b.ToTable("DisputeEvidenceItems");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EquipmentRentalDetails", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<byte>("BillingUnit")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("CpuCores")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("GpuCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GpuModel")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ListingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("MaxRentalUnits")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MinRentalUnits")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NetworkSpec")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PricePerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("RamGb")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RequiresManualApproval")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("StorageGb")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ListingId")
+                        .IsUnique();
+
+                    b.ToTable("EquipmentRentalDetails");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Escrow", b =>
                 {
                     b.Property<long>("ID")
@@ -563,6 +1162,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<long>("ContextId")
@@ -747,6 +1347,705 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("Images");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InstructorProfile", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CourseCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExpertiseJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Headline")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RatingAverage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("StudentCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("InstructorProfiles");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentCommitment", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("EscrowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InvestmentOpportunityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InvestorOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InvestorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SharePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EscrowId");
+
+                    b.HasIndex("InvestmentOpportunityId");
+
+                    b.HasIndex("InvestorOrganizationId");
+
+                    b.HasIndex("InvestorUserId");
+
+                    b.ToTable("InvestmentCommitments");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentContract", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("ContractFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("EscrowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InvestmentOpportunityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InvestorOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InvestorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReleaseConditionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SharePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("SignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("TerminatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TermsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ContractFileId");
+
+                    b.HasIndex("EscrowId");
+
+                    b.HasIndex("InvestmentOpportunityId");
+
+                    b.HasIndex("InvestorOrganizationId");
+
+                    b.HasIndex("InvestorUserId");
+
+                    b.ToTable("InvestmentContracts");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentDocument", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("DocumentType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("FileUploadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InvestmentOpportunityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsConfidential")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("FileUploadId");
+
+                    b.HasIndex("InvestmentOpportunityId");
+
+                    b.ToTable("InvestmentDocuments");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("BusinessModel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("ExpectedRoiPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("OfferedSharePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("OpenedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("OwnerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("RaisedCapital")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RequiredCapital")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte>("RiskLevel")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Roadmap")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<byte>("Stage")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "Stage", "OpenedAt");
+
+                    b.ToTable("InvestmentOpportunities");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentReport", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InvestmentOpportunityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReportedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("RoiPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SpentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("InvestmentOpportunityId");
+
+                    b.ToTable("InvestmentReports");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentTranche", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InvestmentOpportunityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReleaseCondition")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReleasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("InvestmentOpportunityId");
+
+                    b.ToTable("InvestmentTranches");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestorProfile", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FocusAreasJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("InvestorType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("PreferredTicketMax")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PreferredTicketMin")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("InvestorProfiles");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Invoice", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("BuyerOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BuyerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ContextId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContextType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("FeeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("SellerOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SellerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("SubtotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("BuyerOrganizationId");
+
+                    b.HasIndex("BuyerUserId");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("SellerOrganizationId");
+
+                    b.HasIndex("SellerUserId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("ContextType", "ContextId");
+
+                    b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvoiceLine", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("InvoiceLines");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Listing", b =>
                 {
                     b.Property<long>("ID")
@@ -788,12 +2087,14 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("Latitude")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("ListingType")
                         .HasColumnType("tinyint");
 
                     b.Property<decimal?>("Longitude")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("OtherLangs")
@@ -803,12 +2104,15 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<decimal?>("PriceAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PriceMax")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PriceMin")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("PriceType")
@@ -1256,6 +2560,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<long>("ContractId")
@@ -1432,6 +2737,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PriceAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Qty")
@@ -1507,6 +2813,69 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("OrderEvents");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrderMilestone", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReleasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderMilestones");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Organization", b =>
                 {
                     b.Property<long>("ID")
@@ -1520,6 +2889,10 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Property<long?>("CreatorId")
                         .HasColumnType("bigint");
+
+                    b.Property<decimal?>("DefaultMemberPaymentLimit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("DeleteDate")
                         .HasColumnType("datetime2");
@@ -1539,6 +2912,9 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Property<long>("OwnerUserId")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("RequireApprovalForMemberPayments")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -1566,6 +2942,77 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("Organizations");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationInvitation", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("AcceptedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailOrPhone")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InviteTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<long>("InvitedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Role")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AcceptedUserId");
+
+                    b.HasIndex("InviteTokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("InvitedByUserId");
+
+                    b.HasIndex("OrganizationId", "EmailOrPhone", "Status");
+
+                    b.ToTable("OrganizationInvitations");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationMember", b =>
                 {
                     b.Property<long>("ID")
@@ -1573,6 +3020,12 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<bool>("CanApproveCompanyPayments")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanRequestCompanyPayments")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -1591,6 +3044,10 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Property<string>("OtherLangs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("PaymentLimit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("Role")
                         .HasColumnType("tinyint");
@@ -1611,6 +3068,100 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("OrganizationMembers");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationPaymentRequest", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("ApproverUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<byte>("RequestType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("RequesterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("WalletId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ApproverUserId");
+
+                    b.HasIndex("RequesterUserId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("WalletId");
+
+                    b.HasIndex("ReferenceType", "ReferenceId");
+
+                    b.HasIndex("OrganizationId", "Status", "CreateDate");
+
+                    b.ToTable("OrganizationPaymentRequests");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.PayoutRequest", b =>
                 {
                     b.Property<long>("ID")
@@ -1620,6 +3171,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("BankAccountMasked")
@@ -1661,6 +3213,134 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("PayoutRequests");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.PlatformFeeRule", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<byte>("ContextType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("FixedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsActiveRule")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte?>("MinTrustLevel")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Percent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ContextType", "IsActiveRule");
+
+                    b.ToTable("PlatformFeeRules");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.PortfolioItem", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("CoverFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("OwnerType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("SourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("SourceType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CoverFileId");
+
+                    b.HasIndex("OwnerType", "OwnerId", "IsPublic");
+
+                    b.ToTable("PortfolioItems");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Project", b =>
                 {
                     b.Property<long>("ID")
@@ -1670,9 +3350,11 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal?>("BudgetMax")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("BudgetMin")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<long>("CategoryId")
@@ -1752,6 +3434,58 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasIndex("Status", "PublishedAt");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ProjectActivityLog", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<byte>("ActivityType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("ActorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DetailsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectActivityLogs");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ProjectAssignment", b =>
@@ -1858,6 +3592,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("ProposedPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("Status")
@@ -1885,6 +3620,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("AvgRating")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Count")
@@ -1976,6 +3712,144 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasIndex("ReporterUserId");
 
                     b.ToTable("Reports");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ResourceAllocation", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal?>("ActualCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("AssignedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("EstimatedCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("ListingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("OrderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("ResourceType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssignedUserId");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("ProjectId", "Status");
+
+                    b.ToTable("ResourceAllocations");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ResourceReservation", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ReservedCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("ResourceAllocationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ResourceAllocationId", "StartsAt", "EndsAt");
+
+                    b.ToTable("ResourceReservations");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Review", b =>
@@ -2108,6 +3982,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PriceAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Title")
@@ -2213,6 +4088,171 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("Tags");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TeacherAvailabilitySlot", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InstructorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LocationTitle")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<byte>("Mode")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PriceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("InstructorUserId", "StartsAt", "EndsAt");
+
+                    b.ToTable("TeacherAvailabilitySlots");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TeacherBooking", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("AvailabilitySlotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InstructorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Mode")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("OrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PriceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("StudentNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("StudentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AvailabilitySlotId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("StudentUserId", "Status");
+
+                    b.HasIndex("InstructorUserId", "StartsAt", "EndsAt");
+
+                    b.ToTable("TeacherBookings");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Team", b =>
                 {
                     b.Property<long>("ID")
@@ -2304,6 +4344,15 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
+                    b.Property<long?>("AssignedToUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Category")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -2317,11 +4366,35 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("FirstRespondedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("OtherLangs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Priority")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceType")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte?>("SatisfactionScore")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("SlaDueAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Subject")
                         .IsRequired()
@@ -2335,9 +4408,61 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("AssignedToUserId");
+
                     b.HasIndex("UserId");
 
+                    b.HasIndex("ReferenceType", "ReferenceId");
+
+                    b.HasIndex("Category", "Status", "Priority");
+
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TicketAttachment", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("FileUploadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("TicketId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UploadedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("FileUploadId");
+
+                    b.HasIndex("TicketId");
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.ToTable("TicketAttachments");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TicketMessage", b =>
@@ -2491,6 +4616,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("CreateDate")
@@ -2597,6 +4723,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("tinyint");
 
                     b.Property<decimal>("TrustScore")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -2618,6 +4745,197 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserRole", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ApprovedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ValueFlowEvent", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("EventType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ResourceAllocationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("ResourceAllocationId");
+
+                    b.ToTable("ValueFlowEvents");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.VerificationDocument", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<byte>("DocumentType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("FileUploadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("OwnerType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReviewedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("FileUploadId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("OwnerType", "OwnerId", "DocumentType");
+
+                    b.ToTable("VerificationDocuments");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Wallet", b =>
                 {
                     b.Property<long>("ID")
@@ -2627,6 +4945,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Balance")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("CreateDate")
@@ -2682,6 +5001,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("CreateDate")
@@ -2955,6 +5275,43 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ArbitrationDecision", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "DecidedByUser")
+                        .WithMany()
+                        .HasForeignKey("DecidedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Dispute", "Dispute")
+                        .WithOne("Decision")
+                        .HasForeignKey("AITechDigitalTradeHub.Data.Domain.ArbitrationDecision", "DisputeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DecidedByUser");
+
+                    b.Navigation("Dispute");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.BadgeAssignment", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Badge", "Badge")
+                        .WithMany()
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("Badge");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Category", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.Category", "Parent")
@@ -3017,6 +5374,83 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Course", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "CoverFile")
+                        .WithMany()
+                        .HasForeignKey("CoverFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InstructorUser")
+                        .WithMany()
+                        .HasForeignKey("InstructorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("CoverFile");
+
+                    b.Navigation("InstructorUser");
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("StudentUser");
+
+                    b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseLesson", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany("Lessons")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
+                        .WithMany()
+                        .HasForeignKey("FileUploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("FileUpload");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Deliverable", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
@@ -3033,6 +5467,68 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("FileUpload");
 
                     b.Navigation("Milestone");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Dispute", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ArbitratorUser")
+                        .WithMany()
+                        .HasForeignKey("ArbitratorUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "OpenedByUser")
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "RespondentUser")
+                        .WithMany()
+                        .HasForeignKey("RespondentUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ArbitratorUser");
+
+                    b.Navigation("OpenedByUser");
+
+                    b.Navigation("RespondentUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.DisputeEvidence", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Dispute", "Dispute")
+                        .WithMany("EvidenceItems")
+                        .HasForeignKey("DisputeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
+                        .WithMany()
+                        .HasForeignKey("FileUploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "SubmittedByUser")
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dispute");
+
+                    b.Navigation("FileUpload");
+
+                    b.Navigation("SubmittedByUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EquipmentRentalDetails", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Listing", "Listing")
+                        .WithOne("EquipmentRentalDetails")
+                        .HasForeignKey("AITechDigitalTradeHub.Data.Domain.EquipmentRentalDetails", "ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Escrow", b =>
@@ -3066,6 +5562,224 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.Listing", null)
                         .WithMany("Media")
                         .HasForeignKey("ListingID");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InstructorProfile", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentCommitment", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Escrow", "Escrow")
+                        .WithMany()
+                        .HasForeignKey("EscrowId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", "InvestmentOpportunity")
+                        .WithMany("Commitments")
+                        .HasForeignKey("InvestmentOpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "InvestorOrganization")
+                        .WithMany()
+                        .HasForeignKey("InvestorOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InvestorUser")
+                        .WithMany()
+                        .HasForeignKey("InvestorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Escrow");
+
+                    b.Navigation("InvestmentOpportunity");
+
+                    b.Navigation("InvestorOrganization");
+
+                    b.Navigation("InvestorUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentContract", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "ContractFile")
+                        .WithMany()
+                        .HasForeignKey("ContractFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Escrow", "Escrow")
+                        .WithMany()
+                        .HasForeignKey("EscrowId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", "InvestmentOpportunity")
+                        .WithMany("Contracts")
+                        .HasForeignKey("InvestmentOpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "InvestorOrganization")
+                        .WithMany()
+                        .HasForeignKey("InvestorOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InvestorUser")
+                        .WithMany()
+                        .HasForeignKey("InvestorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ContractFile");
+
+                    b.Navigation("Escrow");
+
+                    b.Navigation("InvestmentOpportunity");
+
+                    b.Navigation("InvestorOrganization");
+
+                    b.Navigation("InvestorUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentDocument", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
+                        .WithMany()
+                        .HasForeignKey("FileUploadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", "InvestmentOpportunity")
+                        .WithMany("Documents")
+                        .HasForeignKey("InvestmentOpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FileUpload");
+
+                    b.Navigation("InvestmentOpportunity");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("OwnerUser");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentReport", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", "InvestmentOpportunity")
+                        .WithMany("Reports")
+                        .HasForeignKey("InvestmentOpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InvestmentOpportunity");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentTranche", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", "InvestmentOpportunity")
+                        .WithMany("Tranches")
+                        .HasForeignKey("InvestmentOpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InvestmentOpportunity");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestorProfile", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Invoice", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "BuyerOrganization")
+                        .WithMany()
+                        .HasForeignKey("BuyerOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "BuyerUser")
+                        .WithMany()
+                        .HasForeignKey("BuyerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "SellerOrganization")
+                        .WithMany()
+                        .HasForeignKey("SellerOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "SellerUser")
+                        .WithMany()
+                        .HasForeignKey("SellerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BuyerOrganization");
+
+                    b.Navigation("BuyerUser");
+
+                    b.Navigation("SellerOrganization");
+
+                    b.Navigation("SellerUser");
+
+                    b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvoiceLine", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Invoice", "Invoice")
+                        .WithMany("Lines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Listing", b =>
@@ -3326,6 +6040,17 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrderMilestone", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Order", "Order")
+                        .WithMany("Milestones")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Organization", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "OwnerUser")
@@ -3335,6 +6060,32 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("OwnerUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationInvitation", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "AcceptedUser")
+                        .WithMany()
+                        .HasForeignKey("AcceptedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InvitedByUser")
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany("Invitations")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AcceptedUser");
+
+                    b.Navigation("InvitedByUser");
+
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationMember", b =>
@@ -3356,6 +6107,46 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.OrganizationPaymentRequest", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ApproverUser")
+                        .WithMany()
+                        .HasForeignKey("ApproverUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany("PaymentRequests")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "RequesterUser")
+                        .WithMany()
+                        .HasForeignKey("RequesterUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Wallet", "Wallet")
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApproverUser");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("RequesterUser");
+
+                    b.Navigation("Transaction");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.PayoutRequest", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.Wallet", "Wallet")
@@ -3365,6 +6156,16 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.PortfolioItem", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "CoverFile")
+                        .WithMany()
+                        .HasForeignKey("CoverFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CoverFile");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Project", b =>
@@ -3398,6 +6199,24 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("EmployerUser");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ProjectActivityLog", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Project", "Project")
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ProjectAssignment", b =>
@@ -3474,6 +6293,62 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("ReporterUser");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ResourceAllocation", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "AssignedUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Contract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AssignedUser");
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ResourceReservation", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.ResourceAllocation", "ResourceAllocation")
+                        .WithMany()
+                        .HasForeignKey("ResourceAllocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ResourceAllocation");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Review", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ReviewerUser")
@@ -3504,6 +6379,64 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TeacherAvailabilitySlot", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InstructorUser")
+                        .WithMany()
+                        .HasForeignKey("InstructorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("InstructorUser");
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TeacherBooking", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.TeacherAvailabilitySlot", "AvailabilitySlot")
+                        .WithMany("Bookings")
+                        .HasForeignKey("AvailabilitySlotId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InstructorUser")
+                        .WithMany()
+                        .HasForeignKey("InstructorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AvailabilitySlot");
+
+                    b.Navigation("InstructorUser");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("StudentUser");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Team", b =>
@@ -3538,13 +6471,47 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Ticket", b =>
                 {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "AssignedToUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AssignedToUser");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TicketAttachment", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
+                        .WithMany()
+                        .HasForeignKey("FileUploadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Ticket", "Ticket")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "UploadedByUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FileUpload");
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TicketMessage", b =>
@@ -3610,6 +6577,68 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Address");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserRole", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ValueFlowEvent", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.ResourceAllocation", "ResourceAllocation")
+                        .WithMany("ValueFlowEvents")
+                        .HasForeignKey("ResourceAllocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("ResourceAllocation");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.VerificationDocument", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.FileUpload", "FileUpload")
+                        .WithMany()
+                        .HasForeignKey("FileUploadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("FileUpload");
+
+                    b.Navigation("ReviewedByUser");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Wallet", b =>
@@ -3701,8 +6730,42 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Messages");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Course", b =>
+                {
+                    b.Navigation("Enrollments");
+
+                    b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Dispute", b =>
+                {
+                    b.Navigation("Decision");
+
+                    b.Navigation("EvidenceItems");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", b =>
+                {
+                    b.Navigation("Commitments");
+
+                    b.Navigation("Contracts");
+
+                    b.Navigation("Documents");
+
+                    b.Navigation("Reports");
+
+                    b.Navigation("Tranches");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Invoice", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Listing", b =>
                 {
+                    b.Navigation("EquipmentRentalDetails");
+
                     b.Navigation("ListingTags");
 
                     b.Navigation("Media");
@@ -3734,19 +6797,27 @@ namespace AITechDigitalTradeHub.Data.Migrations
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Order", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Milestones");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Organization", b =>
                 {
                     b.Navigation("Affiliations");
 
+                    b.Navigation("Invitations");
+
                     b.Navigation("Members");
+
+                    b.Navigation("PaymentRequests");
 
                     b.Navigation("Teams");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Project", b =>
                 {
+                    b.Navigation("ActivityLogs");
+
                     b.Navigation("Assignment");
 
                     b.Navigation("Attachments");
@@ -3758,9 +6829,16 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Skills");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ResourceAllocation", b =>
+                {
+                    b.Navigation("ValueFlowEvents");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Role", b =>
                 {
                     b.Navigation("PermissionRoles");
+
+                    b.Navigation("UserRoles");
 
                     b.Navigation("Users");
                 });
@@ -3775,6 +6853,11 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("ListingTags");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.TeacherAvailabilitySlot", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Team", b =>
                 {
                     b.Navigation("Members");
@@ -3782,6 +6865,8 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Ticket", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Messages");
                 });
 
@@ -3794,6 +6879,8 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("PaymentHistories");
 
                     b.Navigation("TicketMessages");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("MTPermissionCenter.EFCore.Entities.MTPermissionCenter_Permission", b =>

@@ -63,6 +63,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public ICollection<FileUpload> Attachments { get; set; } = new List<FileUpload>();
         public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
         public ICollection<ProjectSkill> Skills { get; set; } = new List<ProjectSkill>();
+        public ICollection<ProjectActivityLog> ActivityLogs { get; set; } = new List<ProjectActivityLog>();
 
         public ProjectAssignment? Assignment { get; set; }
         public Contract? Contract { get; set; }

@@ -17,9 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.0.0" />
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.3" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
     <PackageReference Include="Parbad" Version="3.11.3" />
     <PackageReference Include="Parbad.AspNetCore" Version="1.5.0" />
@@ -53,13 +58,13 @@
 
   <ItemGroup>
     <Reference Include="MTPermissionCenter.Abstractions">
-      <HintPath>..\..\..\..\Closed Projects\MTPermissionCenter\MTPermissionCenter.AspNetCore\bin\Release\net8.0\MTPermissionCenter.Abstractions.dll</HintPath>
+      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.AspNetCore">
-      <HintPath>..\..\..\..\Closed Projects\MTPermissionCenter\MTPermissionCenter.AspNetCore\bin\Release\net8.0\MTPermissionCenter.AspNetCore.dll</HintPath>
+      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.EFCore">
-      <HintPath>..\..\..\..\Closed Projects\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.EFCore.dll</HintPath>
+      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.EFCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

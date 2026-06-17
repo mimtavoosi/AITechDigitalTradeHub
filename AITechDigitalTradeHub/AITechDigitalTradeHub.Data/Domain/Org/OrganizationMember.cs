@@ -18,6 +18,9 @@ namespace AITechDigitalTradeHub.Data.Domain
         public OrgRole Role { get; set; } = OrgRole.Member;
 
         public bool IsActive { get; set; } = true;
+        public bool CanRequestCompanyPayments { get; set; } = true;
+        public bool CanApproveCompanyPayments { get; set; }
+        public decimal? PaymentLimit { get; set; }
 
         public Organization Organization { get; set; } = default!;
         public User User { get; set; } = default!;

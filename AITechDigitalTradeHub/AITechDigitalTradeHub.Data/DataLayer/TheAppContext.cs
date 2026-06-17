@@ -21,10 +21,10 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
         }
 
-        //  public TheAppContext(DbContextOptions<TheAppContext> options)
-        //: base(options)
-        //  {
-        //  }
+        public TheAppContext(DbContextOptions<TheAppContext> options)
+            : base(options)
+        {
+        }
 
         #region BaseTables
 
@@ -33,6 +33,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<Category> Categories { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
+        public DbSet<VerificationDocument> VerificationDocuments { get; set; }
+        public DbSet<PortfolioItem> PortfolioItems { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<LoginMethod> LoginMethods { get; set; }
@@ -43,7 +45,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<Setting> Settings { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+        public DbSet<TicketAttachment> TicketAttachments { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Token> Tokens { get; set; }
         public DbSet<SMSMessage> SMSMessages { get; set; }
 
@@ -66,6 +70,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<Listing> Listings { get; set; }
         public DbSet<ListingProductDetails> ListingProductDetails { get; set; }
         public DbSet<ListingServiceDetails> ListingServiceDetails { get; set; }
+        public DbSet<EquipmentRentalDetails> EquipmentRentalDetails { get; set; }
         public DbSet<ServicePackage> ServicePackages { get; set; }
 
         public DbSet<Tag> Tags { get; set; }
@@ -76,12 +81,14 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderEvent> OrderEvents { get; set; }
+        public DbSet<OrderMilestone> OrderMilestones { get; set; }
 
         // -----------------------------
         // Projects
         // -----------------------------
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectSkill> ProjectSkills { get; set; }
+        public DbSet<ProjectActivityLog> ProjectActivityLogs { get; set; }
         public DbSet<Proposal> Proposals { get; set; }
         public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
         public DbSet<Contract> Contracts { get; set; }
@@ -93,10 +100,12 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         // Organization
         // -----------------------------
         public DbSet<Organization> Organizations { get; set; }
+        public DbSet<OrganizationInvitation> OrganizationInvitations { get; set; }
         public DbSet<OrganizationMember> OrganizationMembers { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamMember> TeamMembers { get; set; }
         public DbSet<Affiliation> Affiliations { get; set; }
+        public DbSet<OrganizationPaymentRequest> OrganizationPaymentRequests { get; set; }
 
         // -----------------------------
         // Finance
@@ -105,6 +114,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Escrow> Escrows { get; set; }
         public DbSet<PayoutRequest> PayoutRequests { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<InvoiceLine> InvoiceLines { get; set; }
+        public DbSet<PlatformFeeRule> PlatformFeeRules { get; set; }
 
         // -----------------------------
         // Chat
@@ -118,6 +130,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         // -----------------------------
         public DbSet<Review> Reviews { get; set; }
         public DbSet<RatingAggregate> RatingAggregates { get; set; }
+        public DbSet<Badge> Badges { get; set; }
+        public DbSet<BadgeAssignment> BadgeAssignments { get; set; }
 
         // -----------------------------
         // Moderation
@@ -130,13 +144,51 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         // -----------------------------
         public DbSet<AnalyticsEvent> AnalyticsEvents { get; set; }
 
+        // -----------------------------
+        // Education
+        // -----------------------------
+        public DbSet<InstructorProfile> InstructorProfiles { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<CourseLesson> CourseLessons { get; set; }
+        public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
+        public DbSet<TeacherAvailabilitySlot> TeacherAvailabilitySlots { get; set; }
+        public DbSet<TeacherBooking> TeacherBookings { get; set; }
+
+        // -----------------------------
+        // Investment
+        // -----------------------------
+        public DbSet<InvestorProfile> InvestorProfiles { get; set; }
+        public DbSet<InvestmentOpportunity> InvestmentOpportunities { get; set; }
+        public DbSet<InvestmentDocument> InvestmentDocuments { get; set; }
+        public DbSet<InvestmentCommitment> InvestmentCommitments { get; set; }
+        public DbSet<InvestmentTranche> InvestmentTranches { get; set; }
+        public DbSet<InvestmentReport> InvestmentReports { get; set; }
+        public DbSet<InvestmentContract> InvestmentContracts { get; set; }
+
+        // -----------------------------
+        // Disputes / Arbitration
+        // -----------------------------
+        public DbSet<Dispute> Disputes { get; set; }
+        public DbSet<DisputeEvidence> DisputeEvidenceItems { get; set; }
+        public DbSet<ArbitrationDecision> ArbitrationDecisions { get; set; }
+
+        // -----------------------------
+        // Supply Chain
+        // -----------------------------
+        public DbSet<ResourceAllocation> ResourceAllocations { get; set; }
+        public DbSet<ResourceReservation> ResourceReservations { get; set; }
+        public DbSet<ValueFlowEvent> ValueFlowEvents { get; set; }
+
         #endregion
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            ConfigurationHelper configurationHelper = new ConfigurationHelper();
-            optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("publicdb"));
+            if (!optionsBuilder.IsConfigured)
+            {
+                ConfigurationHelper configurationHelper = new ConfigurationHelper();
+                optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("publicdb"));
+            }
             //  base.OnConfiguring(optionsBuilder);
         }
 
@@ -162,6 +214,28 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
+
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(x => new { x.UserId, x.RoleId })
+                .IsUnique();
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(x => x.User)
+                .WithMany(x => x.UserRoles)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(x => x.Role)
+                .WithMany(x => x.UserRoles)
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(x => x.ApprovedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApprovedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
           
 
@@ -209,6 +283,60 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 .WithMany(x => x.TicketMessages)
 .HasForeignKey(x => x.UserId)
 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(x => x.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedToUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ticket>()
+                .HasIndex(x => new { x.Category, x.Status, x.Priority });
+
+            modelBuilder.Entity<Ticket>()
+                .HasIndex(x => new { x.ReferenceType, x.ReferenceId });
+
+            modelBuilder.Entity<TicketAttachment>()
+                .HasOne(x => x.Ticket)
+                .WithMany(x => x.Attachments)
+                .HasForeignKey(x => x.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TicketAttachment>()
+                .HasOne(x => x.FileUpload)
+                .WithMany()
+                .HasForeignKey(x => x.FileUploadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TicketAttachment>()
+                .HasOne(x => x.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VerificationDocument>()
+                .HasOne(x => x.FileUpload)
+                .WithMany()
+                .HasForeignKey(x => x.FileUploadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VerificationDocument>()
+                .HasOne(x => x.ReviewedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.ReviewedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VerificationDocument>()
+                .HasIndex(x => new { x.OwnerType, x.OwnerId, x.DocumentType });
+
+            modelBuilder.Entity<PortfolioItem>()
+                .HasOne(x => x.CoverFile)
+                .WithMany()
+                .HasForeignKey(x => x.CoverFileId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PortfolioItem>()
+                .HasIndex(x => new { x.OwnerType, x.OwnerId, x.IsPublic });
 
  
             modelBuilder.Entity<LoginMethod>()
@@ -312,6 +440,16 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ListingServiceDetails>()
+                .HasIndex(x => x.ListingId)
+                .IsUnique();
+
+            modelBuilder.Entity<Listing>()
+                .HasOne(x => x.EquipmentRentalDetails)
+                .WithOne(x => x.Listing)
+                .HasForeignKey<EquipmentRentalDetails>(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EquipmentRentalDetails>()
                 .HasIndex(x => x.ListingId)
                 .IsUnique();
 
@@ -429,6 +567,12 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasForeignKey(x => x.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<OrderMilestone>()
+                .HasOne(x => x.Order)
+                .WithMany(x => x.Milestones)
+                .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // ------------------------------------------------------------
             // PROJECTS
             // ------------------------------------------------------------
@@ -454,6 +598,18 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasOne(x => x.City)
                 .WithMany()
                 .HasForeignKey(x => x.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectActivityLog>()
+                .HasOne(x => x.Project)
+                .WithMany(x => x.ActivityLogs)
+                .HasForeignKey(x => x.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectActivityLog>()
+                .HasOne(x => x.ActorUser)
+                .WithMany()
+                .HasForeignKey(x => x.ActorUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //// ProjectAttachment
@@ -612,6 +768,31 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasIndex(x => new { x.OrganizationId, x.UserId })
                 .IsUnique();
 
+            modelBuilder.Entity<OrganizationInvitation>()
+                .HasOne(x => x.Organization)
+                .WithMany(x => x.Invitations)
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrganizationInvitation>()
+                .HasOne(x => x.InvitedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.InvitedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationInvitation>()
+                .HasOne(x => x.AcceptedUser)
+                .WithMany()
+                .HasForeignKey(x => x.AcceptedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationInvitation>()
+                .HasIndex(x => new { x.OrganizationId, x.EmailOrPhone, x.Status });
+
+            modelBuilder.Entity<OrganizationInvitation>()
+                .HasIndex(x => x.InviteTokenHash)
+                .IsUnique();
+
             modelBuilder.Entity<Team>()
                 .HasOne(x => x.Organization)
                 .WithMany(x => x.Teams)
@@ -649,6 +830,42 @@ namespace AITechDigitalTradeHub.Data.DataLayer
             modelBuilder.Entity<Affiliation>()
                 .HasIndex(x => new { x.OrganizationId, x.ContractorUserId })
                 .IsUnique();
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasOne(x => x.Organization)
+                .WithMany(x => x.PaymentRequests)
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasOne(x => x.RequesterUser)
+                .WithMany()
+                .HasForeignKey(x => x.RequesterUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasOne(x => x.ApproverUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApproverUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasOne(x => x.Wallet)
+                .WithMany()
+                .HasForeignKey(x => x.WalletId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasOne(x => x.Transaction)
+                .WithMany()
+                .HasForeignKey(x => x.TransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasIndex(x => new { x.OrganizationId, x.Status, x.CreateDate });
+
+            modelBuilder.Entity<OrganizationPaymentRequest>()
+                .HasIndex(x => new { x.ReferenceType, x.ReferenceId });
 
             // ------------------------------------------------------------
             // FINANCE
@@ -688,6 +905,52 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .WithMany()
                 .HasForeignKey(x => x.WalletId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(x => x.BuyerUser)
+                .WithMany()
+                .HasForeignKey(x => x.BuyerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(x => x.BuyerOrganization)
+                .WithMany()
+                .HasForeignKey(x => x.BuyerOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(x => x.SellerUser)
+                .WithMany()
+                .HasForeignKey(x => x.SellerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(x => x.SellerOrganization)
+                .WithMany()
+                .HasForeignKey(x => x.SellerOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(x => x.Transaction)
+                .WithMany()
+                .HasForeignKey(x => x.TransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasIndex(x => x.InvoiceNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Invoice>()
+                .HasIndex(x => new { x.ContextType, x.ContextId });
+
+            modelBuilder.Entity<InvoiceLine>()
+                .HasOne(x => x.Invoice)
+                .WithMany(x => x.Lines)
+                .HasForeignKey(x => x.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PlatformFeeRule>()
+                .HasIndex(x => new { x.ContextType, x.IsActiveRule });
 
             // ------------------------------------------------------------
             // CHAT
@@ -739,6 +1002,26 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasIndex(x => new { x.TargetType, x.TargetId })
                 .IsUnique();
 
+            modelBuilder.Entity<Badge>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<BadgeAssignment>()
+                .HasOne(x => x.Badge)
+                .WithMany()
+                .HasForeignKey(x => x.BadgeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BadgeAssignment>()
+                .HasOne(x => x.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BadgeAssignment>()
+                .HasIndex(x => new { x.TargetType, x.TargetId, x.BadgeId })
+                .IsUnique();
+
             // ------------------------------------------------------------
             // MODERATION
             // ------------------------------------------------------------
@@ -770,6 +1053,371 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .OnDelete(DeleteBehavior.SetNull);
 
             // ------------------------------------------------------------
+            // EDUCATION
+            // ------------------------------------------------------------
+            modelBuilder.Entity<InstructorProfile>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InstructorProfile>()
+                .HasIndex(x => x.UserId)
+                .IsUnique();
+
+            modelBuilder.Entity<Course>()
+                .HasOne(x => x.InstructorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InstructorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Course>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Course>()
+                .HasOne(x => x.Category)
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Course>()
+                .HasOne(x => x.CoverFile)
+                .WithMany()
+                .HasForeignKey(x => x.CoverFileId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Course>()
+                .HasIndex(x => x.Slug)
+                .IsUnique();
+
+            modelBuilder.Entity<CourseLesson>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.Lessons)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseLesson>()
+                .HasOne(x => x.FileUpload)
+                .WithMany()
+                .HasForeignKey(x => x.FileUploadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseLesson>()
+                .HasIndex(x => new { x.CourseId, x.SortOrder });
+
+            modelBuilder.Entity<CourseEnrollment>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.Enrollments)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseEnrollment>()
+                .HasOne(x => x.StudentUser)
+                .WithMany()
+                .HasForeignKey(x => x.StudentUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseEnrollment>()
+                .HasOne(x => x.Transaction)
+                .WithMany()
+                .HasForeignKey(x => x.TransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseEnrollment>()
+                .HasIndex(x => new { x.CourseId, x.StudentUserId })
+                .IsUnique();
+
+            modelBuilder.Entity<TeacherAvailabilitySlot>()
+                .HasOne(x => x.InstructorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InstructorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherAvailabilitySlot>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherAvailabilitySlot>()
+                .HasIndex(x => new { x.InstructorUserId, x.StartsAt, x.EndsAt });
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasOne(x => x.InstructorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InstructorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasOne(x => x.StudentUser)
+                .WithMany()
+                .HasForeignKey(x => x.StudentUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasOne(x => x.AvailabilitySlot)
+                .WithMany(x => x.Bookings)
+                .HasForeignKey(x => x.AvailabilitySlotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasOne(x => x.Transaction)
+                .WithMany()
+                .HasForeignKey(x => x.TransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasIndex(x => new { x.InstructorUserId, x.StartsAt, x.EndsAt });
+
+            modelBuilder.Entity<TeacherBooking>()
+                .HasIndex(x => new { x.StudentUserId, x.Status });
+
+            // ------------------------------------------------------------
+            // INVESTMENT
+            // ------------------------------------------------------------
+            modelBuilder.Entity<InvestorProfile>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestorProfile>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestorProfile>()
+                .HasIndex(x => x.UserId)
+                .IsUnique();
+
+            modelBuilder.Entity<InvestmentOpportunity>()
+                .HasOne(x => x.OwnerUser)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentOpportunity>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentOpportunity>()
+                .HasOne(x => x.Project)
+                .WithMany()
+                .HasForeignKey(x => x.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentOpportunity>()
+                .HasIndex(x => x.Slug)
+                .IsUnique();
+
+            modelBuilder.Entity<InvestmentDocument>()
+                .HasOne(x => x.InvestmentOpportunity)
+                .WithMany(x => x.Documents)
+                .HasForeignKey(x => x.InvestmentOpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvestmentDocument>()
+                .HasOne(x => x.FileUpload)
+                .WithMany()
+                .HasForeignKey(x => x.FileUploadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentCommitment>()
+                .HasOne(x => x.InvestmentOpportunity)
+                .WithMany(x => x.Commitments)
+                .HasForeignKey(x => x.InvestmentOpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvestmentCommitment>()
+                .HasOne(x => x.InvestorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InvestorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentCommitment>()
+                .HasOne(x => x.InvestorOrganization)
+                .WithMany()
+                .HasForeignKey(x => x.InvestorOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentCommitment>()
+                .HasOne(x => x.Escrow)
+                .WithMany()
+                .HasForeignKey(x => x.EscrowId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentTranche>()
+                .HasOne(x => x.InvestmentOpportunity)
+                .WithMany(x => x.Tranches)
+                .HasForeignKey(x => x.InvestmentOpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvestmentReport>()
+                .HasOne(x => x.InvestmentOpportunity)
+                .WithMany(x => x.Reports)
+                .HasForeignKey(x => x.InvestmentOpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvestmentContract>()
+                .HasOne(x => x.InvestmentOpportunity)
+                .WithMany(x => x.Contracts)
+                .HasForeignKey(x => x.InvestmentOpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvestmentContract>()
+                .HasOne(x => x.InvestorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InvestorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentContract>()
+                .HasOne(x => x.InvestorOrganization)
+                .WithMany()
+                .HasForeignKey(x => x.InvestorOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentContract>()
+                .HasOne(x => x.Escrow)
+                .WithMany()
+                .HasForeignKey(x => x.EscrowId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InvestmentContract>()
+                .HasOne(x => x.ContractFile)
+                .WithMany()
+                .HasForeignKey(x => x.ContractFileId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ------------------------------------------------------------
+            // DISPUTES / ARBITRATION
+            // ------------------------------------------------------------
+            modelBuilder.Entity<Dispute>()
+                .HasOne(x => x.OpenedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.OpenedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Dispute>()
+                .HasOne(x => x.RespondentUser)
+                .WithMany()
+                .HasForeignKey(x => x.RespondentUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Dispute>()
+                .HasOne(x => x.ArbitratorUser)
+                .WithMany()
+                .HasForeignKey(x => x.ArbitratorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Dispute>()
+                .HasIndex(x => new { x.ContextType, x.ContextId, x.Status });
+
+            modelBuilder.Entity<DisputeEvidence>()
+                .HasOne(x => x.Dispute)
+                .WithMany(x => x.EvidenceItems)
+                .HasForeignKey(x => x.DisputeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DisputeEvidence>()
+                .HasOne(x => x.SubmittedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.SubmittedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DisputeEvidence>()
+                .HasOne(x => x.FileUpload)
+                .WithMany()
+                .HasForeignKey(x => x.FileUploadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ArbitrationDecision>()
+                .HasOne(x => x.Dispute)
+                .WithOne(x => x.Decision)
+                .HasForeignKey<ArbitrationDecision>(x => x.DisputeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ArbitrationDecision>()
+                .HasOne(x => x.DecidedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.DecidedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ------------------------------------------------------------
+            // SUPPLY CHAIN
+            // ------------------------------------------------------------
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.Project)
+                .WithMany()
+                .HasForeignKey(x => x.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.Contract)
+                .WithMany()
+                .HasForeignKey(x => x.ContractId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.Order)
+                .WithMany()
+                .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.AssignedUser)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasOne(x => x.Organization)
+                .WithMany()
+                .HasForeignKey(x => x.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResourceAllocation>()
+                .HasIndex(x => new { x.ProjectId, x.Status });
+
+            modelBuilder.Entity<ResourceReservation>()
+                .HasOne(x => x.ResourceAllocation)
+                .WithMany()
+                .HasForeignKey(x => x.ResourceAllocationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ResourceReservation>()
+                .HasIndex(x => new { x.ResourceAllocationId, x.StartsAt, x.EndsAt });
+
+            modelBuilder.Entity<ValueFlowEvent>()
+                .HasOne(x => x.ResourceAllocation)
+                .WithMany(x => x.ValueFlowEvents)
+                .HasForeignKey(x => x.ResourceAllocationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ValueFlowEvent>()
+                .HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ------------------------------------------------------------
             // ایندکس‌های کاربردی (نمونه‌های مهم)
             // ------------------------------------------------------------
             modelBuilder.Entity<Listing>()
@@ -786,6 +1434,14 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             modelBuilder.Entity<AnalyticsEvent>()
                 .HasIndex(x => new { x.EventName, x.CreateDate });
+
+            modelBuilder.Entity<Course>()
+                .HasIndex(x => new { x.Status, x.PublishedAt });
+
+            modelBuilder.Entity<InvestmentOpportunity>()
+                .HasIndex(x => new { x.Status, x.Stage, x.OpenedAt });
+
+            ApplyDefaultDecimalPrecision(modelBuilder);
         }
 
         // -----------------------------
@@ -832,6 +1488,22 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                     //    .Property(nameof(BaseEntity.RowVersion))
                     //    .IsRowVersion()
                     //    .IsConcurrencyToken();
+                }
+            }
+        }
+
+        private static void ApplyDefaultDecimalPrecision(ModelBuilder modelBuilder)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    var clrType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+                    if (clrType == typeof(decimal) && property.GetColumnType() == null)
+                    {
+                        property.SetPrecision(18);
+                        property.SetScale(2);
+                    }
                 }
             }
         }
