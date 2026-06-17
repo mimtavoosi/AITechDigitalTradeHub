@@ -194,6 +194,21 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            // dynamic auth config
+            modelBuilder.AddMTPermissionCenter();
+
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                         .SelectMany(entityType => entityType.GetProperties())
+                         .Where(property => property.ClrType == typeof(decimal) || property.ClrType == typeof(decimal?)))
+            {
+                property.SetPrecision(18);
+                property.SetScale(2);
+            }
+
+            // demo config
+            modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
+
             base.OnModelCreating(modelBuilder);
 
             modelBuilder

@@ -44,12 +44,13 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
-    <Folder Include="Tools\" />
     <Folder Include="ViewModels\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="DataSetting.json" />
+    <None Include="DataSetting.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -58,13 +59,13 @@
 
   <ItemGroup>
     <Reference Include="MTPermissionCenter.Abstractions">
-      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.Abstractions.dll</HintPath>
+      <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.AspNetCore">
-      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.AspNetCore.dll</HintPath>
+      <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.EFCore">
-      <HintPath>C:\Users\Naser\Downloads\MTPermissionCenter.EFCore.dll</HintPath>
+      <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.EFCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -1,15 +1,17 @@
 
+using AITechDigitalTradeHub.Api.Infrastructure;
+using AITechDigitalTradeHub.Api.Services;
 using AITechDigitalTradeHub.Data.DataLayer;
 using AITechDigitalTradeHub.Data.DataLayer.Repositories;
 using AITechDigitalTradeHub.Data.DataLayer.Services;
-using AITechDigitalTradeHub.Api.Services;
-using AITechDigitalTradeHub.Api.Infrastructure;
+using AITechWebAPI.Tools;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using MTPermissionCenter.AspNetCore;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -20,6 +22,12 @@ namespace AITechDigitalTradeHub.Api
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+
+            var corsPolicy = builder.Configuration["cors:policy"].ToString();
+            var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
+
+            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
 
             builder.Configuration.AddJsonFile("DataSetting.json", optional: true, reloadOnChange: true);
 
@@ -62,21 +70,68 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
-            var allowedOrigins = builder.Configuration
-                .GetSection("Cors:AllowedOrigins")
-                .Get<string[]>() ?? new[] { "http://localhost:3000", "http://127.0.0.1:3000" };
+
+
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddHttpContextAccessor();
+            if (cookiesecurity == "default")
+            {
+                builder.Services.AddSession();
+            }
+            else
+            {
+                builder.Services.AddSession(options =>
+                {
+                    options.Cookie.HttpOnly = true; // ????? ????? ???? ???????
+                    options.Cookie.IsEssential = true; // ????? ???? ???? ???? ?????? Session
+                    options.Cookie.SameSite = SameSiteMode.None;  // ????? ????? ??????? ?? ??????????? cross-origin
+                    options.Cookie.SecurePolicy = (CookieSecurePolicy)int.Parse(cookiesecurity);  // ??? HTTPS ???? ???
+                });
+            }
+
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("Frontend", policy =>
+
+                if (corsPolicy.ToLower().Contains("allowall"))
                 {
-                    policy
-                        .WithOrigins(allowedOrigins)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+                    options.AddPolicy(corsPolicy, builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader()
+                               .WithExposedHeaders("Set-Cookie");
+
+                    });
+                }
+                else
+                {
+                    options.AddPolicy(corsPolicy, builder =>
+                    builder.WithOrigins(allowedOrigins) // اضافه کردن localhost و آی‌پی لوکال
+                           .AllowCredentials()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                             .WithExposedHeaders("Set-Cookie"));
+
+                }
             });
+
+            //if (corsSettings.useRateLimiter)
+            //{
+            //    ///--محدود کردن نرخ درخواست‌ها (Rate Limiting) --///
+            //    builder.Services.AddRateLimiter(options =>
+            //    {
+            //        options.AddFixedWindowLimiter("Fixed", limiterOptions =>
+            //        {
+            //            limiterOptions.Window = TimeSpan.FromSeconds(10);
+            //            limiterOptions.PermitLimit = 5; // تعداد درخواست‌ها در هر بازه زمانی
+            //        });
+            //    });
+            //}
+
+
+            // Add services to the container.
 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.Configure<SmsSenderOptions>(builder.Configuration.GetSection("SmsSender"));
@@ -96,12 +151,21 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
             builder.Services.AddScoped<IReviewRep, ReviewRep>();
 
-            builder.Services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                });
+            var apiVersion = ToolBox.CalculateAppVersionNo();
+            var apiTitle = builder.Environment.ApplicationName;
+
+            builder.Services.AddControllers(options =>
+            {
+                //options.OutputFormatters.Add()
+                options.ReturnHttpNotAcceptable = true;
+            })
+                 .AddNewtonsoftJson(options =>
+                 {
+                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                 })
+                .AddXmlDataContractSerializerFormatters();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -129,30 +193,42 @@ namespace AITechDigitalTradeHub.Api
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "AITech Digital Trade Hub API",
-                    Version = "v1"
+                    Title = apiTitle,
+                    Version = apiVersion
                 });
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                // Configure Swagger to use JWT authentication
+                var securityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "JWT access token"
-                });
+                    Description = "Please enter your JWT with Bearer into the field",
+
+                    //Reference = new OpenApiReference
+                    //{
+                    //    Id = JwtBearerDefaults.AuthenticationScheme,
+                    //    Type = ReferenceType.SecurityScheme
+                    //}
+                };
+
+                options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
+
 
                 options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecuritySchemeReference("Bearer", document, null),
-                        new List<string>()
-                    }
+                    [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = new List<string>()
                 });
             });
 
             builder.Services.AddHealthChecks();
+
+            builder.Services.AddAutoMapper(cfg => { /* تنظیمات سراسری اختیاری */ },
+                                        typeof(Program).Assembly);
+
+            builder.Services.AddMTPermissionCenter();
 
             var app = builder.Build();
 
@@ -161,22 +237,77 @@ namespace AITechDigitalTradeHub.Api
                 await IdentityDataSeeder.SeedAsync(app.Services);
             }
 
+
+            #region Pipeline
+
+            app.UseStaticFiles();
+
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
 
             app.UseMiddleware<GlobalExceptionMiddleware>();
+         
+            app.MapHealthChecks("/health");
+
+
+
+            //if (app.Environment.IsDevelopment())
+            //{
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
+                c.RoutePrefix = string.Empty; // روت اصلی سایت برای Swagger
+                c.InjectJavascript("/js/swagger-token.js");
+            });
+
+            //}
             app.UseHttpsRedirection();
-            app.UseCors("Frontend");
+
+            //app.UseParbadVirtualGateway();
+
+            app.UseCors(corsPolicy);
+
+
+            app.UseSession();
+
+            #region HangFire
+
+ //           app.UseHangfireDashboard("/hangfire");
+ //           //app.UseHangfireServer();
+
+ //           // 👇 اینجا دقیقاً محل ثبت Job هست
+ //           RecurringJob.AddOrUpdate<JobManager>(
+ //    job => job.ProcessTodayBirthdays(),
+ //    "0 9 * * *",
+ //    TimeZoneInfo.Local
+ //);
+
+            #endregion
+
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // IMPORTANT: after authentication
+            app.UseMTPermissionCenter();
 
-            app.MapControllers();
-            app.MapHealthChecks("/health");
+            //Controller/Action/Id?
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            //app.UseParbadVirtualGateway();
+
+
+#endregion Pipeline
+
 
             app.Run();
         }
