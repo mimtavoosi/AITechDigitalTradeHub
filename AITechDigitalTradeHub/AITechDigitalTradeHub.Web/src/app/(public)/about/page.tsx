@@ -21,9 +21,10 @@ import { SectionBlock } from "@/components/marketing/section-block";
 import { SmartSearchPanel } from "@/components/marketing/smart-search-panel";
 
 export const metadata: Metadata = {
-  title: "درباره هاب تجارت دیجیتال هوش مصنوعی",
-  description: "معرفی پلتفرم تخصصی خدمات، پروژه، آموزش، سرمایه‌گذاری و زیرساخت هوش مصنوعی."
+  title: "درباره آی نت",
+  description: "شبکه اکوسیستم هوش مصنوعی، بستری هوشمند برای اتصال متخصصان، شرکت‌ها، دانشگاه‌ها، سرمایه‌گذاران و متقاضیان خدمات هوش مصنوعی است. این سامانه با هدف توسعه اکوسیستم هوش مصنوعی، تسهیل همکاری‌های تخصصی و تسریع اجرای پروژه‌های نوآورانه طراحی شده است. آی نت تلاش می‌کند زیرساختی یکپارچه برای رشد اقتصاد دانش‌بنیان و تحول دیجیتال در سطح ملی و بین‌المللی فراهم آورد."
 };
+
 
 const searchSuggestions = ["متخصص بینایی ماشین", "قرارداد امن AI", "سرمایه‌گذاری هوش مصنوعی", "آموزش NLP"];
 
@@ -35,17 +36,17 @@ export default function AboutPage() {
           <div className="text-right">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/78 px-4 py-2 text-xs font-extrabold text-accent shadow-sm backdrop-blur-xl">
               <Sparkles className="size-4" />
-              زیرساخت اعتماد برای بازار هوش مصنوعی
+              شبکه تخصصی هوش مصنوعی ایران
             </div>
             <h1 className="max-w-3xl text-3xl font-black leading-[1.35] text-foreground md:text-5xl md:leading-[1.28]">
-              درباره هاب تجارت دیجیتال هوش مصنوعی
+              درباره آی نت
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-9 text-muted md:text-lg">
-              این پلتفرم برای اتصال کارفرما، متخصص، شرکت، مدرس و سرمایه‌گذار در بازار هوش مصنوعی طراحی شده؛ جایی که پروژه، خدمت، قرارداد، پرداخت امن، داوری و اعتبارسنجی در یک مسیر واحد مدیریت می‌شود.
+              آی نت برای اتصال کسب‌وکار، متخصص، شرکت، مدرس و سرمایه‌گذار در اکوسیستم هوش مصنوعی ایران طراحی شده؛ جایی که مشاوره، آموزش، پژوهش، پروژه، فرصت شغلی، زیرساخت، سرمایه‌گذاری و تامین داده در یک مسیر تخصصی دیده می‌شود.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/services" className="rounded-lg bg-primary px-5 py-3 text-sm font-black text-white shadow-lg shadow-primary/20">
-                مشاهده خدمات
+              <Link href="/domains" className="rounded-lg bg-primary px-5 py-3 text-sm font-black text-white shadow-lg shadow-primary/20">
+                مشاهده حوزه‌ها
               </Link>
               <Link href="/projects" className="rounded-lg border border-border bg-white/75 px-5 py-3 text-sm font-black text-foreground hover:bg-white">
                 پروژه‌های فعال
@@ -109,7 +110,7 @@ export default function AboutPage() {
 
       <SectionBlock eyebrow="ماژول‌ها" title="بخش‌های اصلی محصول" description="پلتفرم فقط صفحه معرفی نیست؛ هر بخش برای یک جریان کاری واقعی در اکوسیستم AI طراحی شده است.">
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <FeatureCard icon={Users} title="مارکت‌پلیس متخصصان" description="خدمات، تجهیزات، اجاره GPU و پروفایل متخصصان قابل جستجو و مقایسه است." />
+          <FeatureCard icon={Users} title="خدمات و تجهیزات تخصصی" description="خدمات، تجهیزات، اجاره GPU و پروفایل متخصصان قابل جستجو و مقایسه است." />
           <FeatureCard icon={Building2} title="سازمان‌ها و تیم‌ها" description="شرکت‌ها می‌توانند اعضا، پروژه‌ها، کیف پول و قراردادهای سازمانی را مدیریت کنند." tone="primary" />
           <FeatureCard icon={WalletCards} title="مالی و Escrow" description="کیف پول، تراکنش، پرداخت مرحله‌ای، فاکتور و درخواست تسویه در بک‌اند پیش‌بینی شده است." tone="green" />
           <FeatureCard icon={GraduationCap} title="آموزش تخصصی" description="مدرس، دوره، جلسه آموزشی و مسیر یادگیری برای ورود به بازار AI پوشش داده می‌شود." tone="amber" />
@@ -129,7 +130,7 @@ export default function AboutPage() {
           </div>
           <div className="flex flex-wrap gap-3 md:justify-end">
             <Link href="/services" className="rounded-lg bg-white px-5 py-3 text-sm font-black text-foreground">
-              ورود به مارکت‌پلیس
+              مشاهده خدمات و تجهیزات
             </Link>
             <Link href="/investment" className="rounded-lg border border-white/60 px-5 py-3 text-sm font-black text-white">
               فرصت‌های سرمایه‌گذاری

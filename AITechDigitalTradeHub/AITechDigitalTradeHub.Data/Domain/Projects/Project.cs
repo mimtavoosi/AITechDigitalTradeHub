@@ -5,11 +5,12 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AITechDigitalTradeHub.Data.Domain
 {
     public enum ProjectType : byte { Fixed = 1, Hourly = 2 }
-    public enum ProjectStatus : byte { Draft = 1, Published = 2, Bidding = 3, Assigned = 4, InProgress = 5, Done = 6, Cancelled = 7 }
+    public enum ProjectStatus : byte { Draft = 1, Published = 2, Bidding = 3, Assigned = 4, InProgress = 5, Done = 6, Cancelled = 7, Disputed = 8 }
     public enum LocationMode : byte { Remote = 1, OnSite = 2, Hybrid = 3 }
 
     /// <summary>پروژه ثبت‌شده توسط کارفرما (شخص یا سازمان).</summary>
@@ -62,6 +63,9 @@ namespace AITechDigitalTradeHub.Data.Domain
 
         public ICollection<FileUpload> Attachments { get; set; } = new List<FileUpload>();
         public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
+
+        [NotMapped]
+        public int? QueryProposalsCount { get; set; }
         public ICollection<ProjectSkill> Skills { get; set; } = new List<ProjectSkill>();
         public ICollection<ProjectActivityLog> ActivityLogs { get; set; } = new List<ProjectActivityLog>();
 

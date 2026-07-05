@@ -27,7 +27,7 @@ namespace AITechDigitalTradeHub.Data.Tools
 
         public Task BumpRoleUsersVersionAsync(List<long> roleIds, CancellationToken ct = default)
             => _db.Users
-                .Where(u => roleIds.Contains(u.RoleId))
+                .Where(u => u.UserRoles.Any(ur => roleIds.Contains(ur.RoleId) && ur.IsActive))
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.PermissionsVersion, u => u.PermissionsVersion + 1), ct);
     }
 }

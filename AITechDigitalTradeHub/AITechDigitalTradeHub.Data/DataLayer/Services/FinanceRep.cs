@@ -310,7 +310,13 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     return result;
                 }
 
-                destinationWallet.Balance += escrow.Amount;
+                decimal fee = 0;
+                if (targetStatus == EscrowStatus.Released && TryMapFeeContextType(escrow.ContextType, out var feeContextType))
+                {
+                    fee = await CalculateFeeAsync(feeContextType, escrow.Amount);
+                }
+
+                destinationWallet.Balance += escrow.Amount - fee;
                 destinationWallet.UpdateDate = DateTime.Now;
                 escrow.Status = targetStatus;
                 escrow.UpdateDate = DateTime.Now;
@@ -326,6 +332,20 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     CreateDate = DateTime.Now
                 });
 
+                if (fee > 0)
+                {
+                    await _context.Transactions.AddAsync(new Transaction
+                    {
+                        WalletId = destinationWallet.ID,
+                        TxType = TransactionType.Fee,
+                        Amount = -fee,
+                        ReferenceType = escrow.ContextType,
+                        ReferenceId = escrow.ContextId,
+                        Status = TransactionStatus.Success,
+                        CreateDate = DateTime.Now
+                    });
+                }
+
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
                 result.ID = escrow.ID;
@@ -337,6 +357,176 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
+        }
+
+        private static bool TryMapFeeContextType(string contextType, out PlatformFeeContextType feeContextType)
+        {
+            switch (contextType)
+            {
+                case "Order":
+                    feeContextType = PlatformFeeContextType.Order;
+                    return true;
+                case "Contract":
+                case "ProjectMilestone":
+                    feeContextType = PlatformFeeContextType.Contract;
+                    return true;
+                case "Course":
+                case "CourseEnrollment":
+                    feeContextType = PlatformFeeContextType.Course;
+                    return true;
+                case "TeacherBooking":
+                    feeContextType = PlatformFeeContextType.TeacherBooking;
+                    return true;
+                case "Investment":
+                    feeContextType = PlatformFeeContextType.Investment;
+                    return true;
+                case "Payout":
+                    feeContextType = PlatformFeeContextType.Payout;
+                    return true;
+                default:
+                    feeContextType = default;
+                    return false;
+            }
+        }
+
+        public async Task<ListResultObject<PlatformFeeRule>> GetFeeRulesAsync()
+        {
+            var result = new ListResultObject<PlatformFeeRule>();
+            try
+            {
+                var query = _context.PlatformFeeRules.AsNoTracking().Where(x => x.DeleteDate == null);
+                result.TotalCount = await query.CountAsync();
+                result.Results = await query.OrderBy(x => x.ContextType).ThenBy(x => x.MinAmount).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
+        }
+
+        public async Task<BitResultObject> CreateFeeRuleAsync(PlatformFeeRule rule)
+        {
+            var result = new BitResultObject();
+            try
+            {
+                if (rule.Percent < 0 || rule.Percent > 100)
+                {
+                    return new BitResultObject { Status = false, ErrorMessage = "درصد کارمزد باید بین ۰ تا ۱۰۰ باشد." };
+                }
+
+                rule.CreateDate = DateTime.Now;
+                rule.UpdateDate = DateTime.Now;
+                await _context.PlatformFeeRules.AddAsync(rule);
+                await _context.SaveChangesAsync();
+                result.ID = rule.ID;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
+        }
+
+        public async Task<BitResultObject> UpdateFeeRuleAsync(PlatformFeeRule rule)
+        {
+            var result = new BitResultObject();
+            try
+            {
+                if (rule.Percent < 0 || rule.Percent > 100)
+                {
+                    return new BitResultObject { Status = false, ErrorMessage = "درصد کارمزد باید بین ۰ تا ۱۰۰ باشد." };
+                }
+
+                var existing = await _context.PlatformFeeRules.SingleOrDefaultAsync(x => x.ID == rule.ID && x.DeleteDate == null);
+                if (existing == null)
+                {
+                    return new BitResultObject { Status = false, ErrorMessage = "قانون کارمزد پیدا نشد." };
+                }
+
+                existing.ContextType = rule.ContextType;
+                existing.Percent = rule.Percent;
+                existing.FixedAmount = rule.FixedAmount;
+                existing.Currency = rule.Currency;
+                existing.MinAmount = rule.MinAmount;
+                existing.MaxAmount = rule.MaxAmount;
+                existing.MinTrustLevel = rule.MinTrustLevel;
+                existing.IsActiveRule = rule.IsActiveRule;
+                existing.UpdateDate = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+                result.ID = existing.ID;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
+        }
+
+        public async Task<BitResultObject> SetFeeRuleActiveAsync(long id, bool isActive)
+        {
+            var result = new BitResultObject();
+            try
+            {
+                var existing = await _context.PlatformFeeRules.SingleOrDefaultAsync(x => x.ID == id && x.DeleteDate == null);
+                if (existing == null)
+                {
+                    return new BitResultObject { Status = false, ErrorMessage = "قانون کارمزد پیدا نشد." };
+                }
+
+                existing.IsActiveRule = isActive;
+                existing.UpdateDate = DateTime.Now;
+                await _context.SaveChangesAsync();
+                result.ID = existing.ID;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
+        }
+
+        public async Task<decimal> CalculateFeeAsync(PlatformFeeContextType contextType, decimal amount)
+        {
+            if (amount <= 0)
+            {
+                return 0;
+            }
+
+            var rule = await _context.PlatformFeeRules
+                .AsNoTracking()
+                .Where(x =>
+                    x.ContextType == contextType &&
+                    x.IsActiveRule &&
+                    x.DeleteDate == null &&
+                    (x.MinAmount == null || amount >= x.MinAmount) &&
+                    (x.MaxAmount == null || amount <= x.MaxAmount))
+                .OrderBy(x => x.ID)
+                .FirstOrDefaultAsync();
+
+            if (rule == null)
+            {
+                return 0;
+            }
+
+            var fee = amount * (rule.Percent / 100m) + (rule.FixedAmount ?? 0);
+            return Math.Clamp(fee, 0, amount);
+        }
+
+        public async Task<decimal> CalculateFeeForReferenceTypeAsync(string referenceType, decimal amount)
+        {
+            return TryMapFeeContextType(referenceType, out var feeContextType)
+                ? await CalculateFeeAsync(feeContextType, amount)
+                : 0;
         }
     }
 }

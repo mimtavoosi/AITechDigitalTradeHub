@@ -715,7 +715,13 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte?>("DifficultyScore")
+                        .HasColumnType("tinyint");
+
                     b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EstimatedWeeks")
                         .HasColumnType("int");
 
                     b.Property<long>("InstructorUserId")
@@ -723,6 +729,12 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte?>("LearningGoal")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("LearningOutcomes")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte>("Level")
                         .HasColumnType("tinyint");
@@ -733,12 +745,21 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<string>("OtherLangs")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PrerequisitesSummary")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("PriceAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("ProjectBased")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("RequiresMentor")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -751,6 +772,9 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
 
+                    b.Property<byte?>("TargetRole")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -759,22 +783,108 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("WeeklyHoursMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WeeklyHoursMin")
+                        .HasColumnType("int");
+
                     b.HasKey("ID");
 
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("CoverFileId");
 
-                    b.HasIndex("InstructorUserId");
-
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
 
+                    b.HasIndex("InstructorUserId", "CreateDate");
+
                     b.HasIndex("Status", "PublishedAt");
 
+                    b.HasIndex("WeeklyHoursMin", "WeeklyHoursMax");
+
+                    b.HasIndex("LearningGoal", "TargetRole", "Level", "DeliveryMode");
+
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseCertificate", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("CertificateNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("EnrollmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InstructorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("ProgressPercent")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("StudentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CertificateNumber")
+                        .IsUnique();
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("EnrollmentId")
+                        .IsUnique();
+
+                    b.HasIndex("InstructorUserId");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.ToTable("CourseCertificates");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", b =>
@@ -827,12 +937,12 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("StudentUserId");
-
                     b.HasIndex("TransactionId");
 
                     b.HasIndex("CourseId", "StudentUserId")
                         .IsUnique();
+
+                    b.HasIndex("StudentUserId", "CreateDate");
 
                     b.ToTable("CourseEnrollments");
                 });
@@ -899,6 +1009,116 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasIndex("CourseId", "SortOrder");
 
                     b.ToTable("CourseLessons");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseLessonProgress", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CourseLessonId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("EnrollmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("ProgressPercent")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("StudentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CourseLessonId");
+
+                    b.HasIndex("EnrollmentId", "CourseLessonId")
+                        .IsUnique();
+
+                    b.HasIndex("StudentUserId", "Status");
+
+                    b.ToTable("CourseLessonProgresses");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CoursePrerequisiteTag", b =>
+                {
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TagId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("MinimumLevel")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("CourseId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("CoursePrerequisiteTags");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseSkillTag", b =>
+                {
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TagId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Weight")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("CourseId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("CourseSkillTags");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseTargetRoleTag", b =>
+                {
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TagId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte>("Weight")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("CourseId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("CourseTargetRoleTags");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Deliverable", b =>
@@ -1078,6 +1298,140 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.HasIndex("SubmittedByUserId");
 
                     b.ToTable("DisputeEvidenceItems");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EducationQuestionnaireOption", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<byte?>("LearningGoal")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte?>("Level")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte?>("PreferredMode")
+                        .HasColumnType("tinyint");
+
+                    b.Property<long>("QuestionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SkillTagId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<byte?>("TargetRole")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("WeeklyHoursMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WeeklyHoursMin")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Weight")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("SkillTagId");
+
+                    b.HasIndex("QuestionId", "SortOrder");
+
+                    b.ToTable("EducationQuestionnaireOptions");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EducationQuestionnaireQuestion", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HelpText")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("QuestionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("nvarchar(240)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("EducationQuestionnaireQuestions");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EquipmentRentalDetails", b =>
@@ -2144,9 +2498,11 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasIndex("CoverFileId");
 
-                    b.HasIndex("OwnerUserId");
+                    b.HasIndex("OwnerUserId", "CreateDate");
 
                     b.HasIndex("CategoryId", "Status", "PublishedAt");
+
+                    b.HasIndex("Status", "ListingType", "PublishedAt");
 
                     b.ToTable("Listings");
                 });
@@ -2546,6 +2902,8 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasIndex("SenderUserId");
 
+                    b.HasIndex("ConversationId", "CreateDate");
+
                     b.HasIndex("ConversationId", "ID");
 
                     b.ToTable("Messages");
@@ -2575,14 +2933,24 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<DateTime?>("DeleteDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<DateTime?>("DueAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DurationDays")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("OtherLangs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartsAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
@@ -2696,7 +3064,9 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "DeleteDate", "CreateDate");
+
+                    b.HasIndex("UserId", "IsRead", "DeleteDate");
 
                     b.ToTable("Notifications");
                 });
@@ -2897,6 +3267,10 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<DateTime?>("DeleteDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -2912,6 +3286,14 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Property<long>("OwnerUserId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("PublicEmail")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("PublicPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<bool>("RequireApprovalForMemberPayments")
                         .HasColumnType("bit");
@@ -2929,8 +3311,15 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("nvarchar(160)");
 
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.HasKey("ID");
 
@@ -3427,11 +3816,13 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.HasIndex("EmployerUserId");
-
-                    b.HasIndex("OrganizationId");
-
                     b.HasIndex("Status", "PublishedAt");
+
+                    b.HasIndex("EmployerUserId", "DeleteDate", "CreateDate");
+
+                    b.HasIndex("OrganizationId", "DeleteDate", "CreateDate");
+
+                    b.HasIndex("Status", "IsActive", "DeleteDate", "PublishedAt");
 
                     b.ToTable("Projects");
                 });
@@ -3483,7 +3874,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasIndex("ActorUserId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("ProjectId", "CreateDate");
 
                     b.ToTable("ProjectActivityLogs");
                 });
@@ -3563,6 +3954,25 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CounterAcceptedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CounterDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CounterMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CounterOfferAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("CounterPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CounterRejectedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CoverLetter")
                         .HasColumnType("nvarchar(max)");
@@ -4716,8 +5126,21 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Property<long>("PermissionsVersion")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("ResumeEducation")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ResumeExperience")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("ResumeHeadline")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("ResumeSummary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
@@ -4740,9 +5163,157 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.HasIndex("AddressId");
 
-                    b.HasIndex("RoleId");
-
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserNotificationPreference", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DigestFrequency")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<bool>("DisputeEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EducationEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EmailEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("FinancialEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("InAppEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("MarketingEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ProjectEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("QuietHoursEnd")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("QuietHoursStart")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<bool>("SmsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SupportEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserNotificationPreferences");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserPanelPreference", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("CardOrderJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DensityKey")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("FontFamily")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("FontScale")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("HiddenItemsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PanelKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("SidebarMode")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("ThemeKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("UserId", "PanelKey")
+                        .IsUnique();
+
+                    b.ToTable("UserPanelPreferences");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserRole", b =>
@@ -4806,6 +5377,42 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserSkill", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TagId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("ID")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherLangs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("UserSkills");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.ValueFlowEvent", b =>
@@ -5407,6 +6014,41 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseCertificate", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "InstructorUser")
+                        .WithMany()
+                        .HasForeignKey("InstructorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("InstructorUser");
+
+                    b.Navigation("StudentUser");
+                });
+
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", b =>
                 {
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
@@ -5449,6 +6091,90 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("FileUpload");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseLessonProgress", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.CourseLesson", "CourseLesson")
+                        .WithMany()
+                        .HasForeignKey("CourseLessonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.CourseEnrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CourseLesson");
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("StudentUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CoursePrerequisiteTag", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany("PrerequisiteTags")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Tag", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseSkillTag", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany("SkillTags")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Tag", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.CourseTargetRoleTag", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Course", "Course")
+                        .WithMany("TargetRoleTags")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Tag", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Deliverable", b =>
@@ -5518,6 +6244,24 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("FileUpload");
 
                     b.Navigation("SubmittedByUser");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EducationQuestionnaireOption", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.EducationQuestionnaireQuestion", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Tag", "SkillTag")
+                        .WithMany()
+                        .HasForeignKey("SkillTagId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Question");
+
+                    b.Navigation("SkillTag");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EquipmentRentalDetails", b =>
@@ -6188,7 +6932,7 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("AITechDigitalTradeHub.Data.Domain.Organization", "Organization")
-                        .WithMany()
+                        .WithMany("Projects")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -6568,15 +7312,29 @@ namespace AITechDigitalTradeHub.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AddressId");
 
-                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                    b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserNotificationPreference", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Address");
+                    b.Navigation("User");
+                });
 
-                    b.Navigation("Role");
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserPanelPreference", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserRole", b =>
@@ -6601,6 +7359,25 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("ApprovedByUser");
 
                     b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.UserSkill", b =>
+                {
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.Tag", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AITechDigitalTradeHub.Data.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tag");
 
                     b.Navigation("User");
                 });
@@ -6735,6 +7512,12 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Enrollments");
 
                     b.Navigation("Lessons");
+
+                    b.Navigation("PrerequisiteTags");
+
+                    b.Navigation("SkillTags");
+
+                    b.Navigation("TargetRoleTags");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Dispute", b =>
@@ -6742,6 +7525,11 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("Decision");
 
                     b.Navigation("EvidenceItems");
+                });
+
+            modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.EducationQuestionnaireQuestion", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.InvestmentOpportunity", b =>
@@ -6811,6 +7599,8 @@ namespace AITechDigitalTradeHub.Data.Migrations
 
                     b.Navigation("PaymentRequests");
 
+                    b.Navigation("Projects");
+
                     b.Navigation("Teams");
                 });
 
@@ -6839,8 +7629,6 @@ namespace AITechDigitalTradeHub.Data.Migrations
                     b.Navigation("PermissionRoles");
 
                     b.Navigation("UserRoles");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("AITechDigitalTradeHub.Data.Domain.Setting", b =>

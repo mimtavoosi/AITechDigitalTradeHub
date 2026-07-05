@@ -9,6 +9,7 @@ using AITechDigitalTradeHub.Data.ResultObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace AITechDigitalTradeHub.Api.Controllers
 {
@@ -26,6 +27,7 @@ namespace AITechDigitalTradeHub.Api.Controllers
         }
 
         [HttpGet]
+        [OutputCache(PolicyName = "PublicShort")]
         public async Task<IActionResult> GetAll(
             [FromQuery] ListingType? listingType,
             [FromQuery] ListingStatus? status,
@@ -66,6 +68,7 @@ namespace AITechDigitalTradeHub.Api.Controllers
         }
 
         [HttpGet("{id:long}")]
+        [OutputCache(PolicyName = "PublicShort")]
         public async Task<IActionResult> GetById(long id)
         {
             var result = await _listingRep.GetListingByIdAsync(id);

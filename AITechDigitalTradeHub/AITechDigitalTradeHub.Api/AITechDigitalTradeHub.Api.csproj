@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.3" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
@@ -30,8 +31,12 @@
     <PackageReference Include="Parbad.AspNetCore" Version="1.5.0" />
     <PackageReference Include="Parbad.Gateway.ZarinPal" Version="1.7.1" />
     <PackageReference Include="Parbad.Storage.Cache" Version="1.5.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <!-- Pin the patched version because WCF 10.0.652802 otherwise resolves the vulnerable 10.0.0 transitively. -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.9" NoWarn="NU1510" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.Federation" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
@@ -44,7 +49,6 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
   </ItemGroup>
 
   <ItemGroup>

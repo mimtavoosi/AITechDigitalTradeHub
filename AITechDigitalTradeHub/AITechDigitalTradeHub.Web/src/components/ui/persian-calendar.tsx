@@ -29,18 +29,18 @@ export function PersianCalendar({ value, onChange, className }: PersianCalendarP
   }
 
   return (
-    <div className={cn("w-72 rounded-lg border border-border bg-white p-3 shadow-lg", className)}>
+    <div className={cn("w-full max-w-xs rounded-md border border-border bg-white p-2.5 shadow-lg", className)}>
       <div className="flex items-center justify-between">
-        <button type="button" className="grid size-8 place-items-center rounded-md border border-border" onClick={() => moveMonth(1)}>
-          <ChevronRight className="size-4" />
+        <button type="button" className="grid size-7 place-items-center rounded-md border border-border text-muted" onClick={() => moveMonth(1)}>
+          <ChevronRight className="size-3.5" />
         </button>
-        <div className="text-sm font-black">{monthNames[view.month - 1]} {toPersianDigits(String(view.year))}</div>
-        <button type="button" className="grid size-8 place-items-center rounded-md border border-border" onClick={() => moveMonth(-1)}>
-          <ChevronLeft className="size-4" />
+        <div className="text-xs font-black">{monthNames[view.month - 1]} {toPersianDigits(String(view.year))}</div>
+        <button type="button" className="grid size-7 place-items-center rounded-md border border-border text-muted" onClick={() => moveMonth(-1)}>
+          <ChevronLeft className="size-3.5" />
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted">
+      <div className="mt-2.5 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-muted">
         {weekDays.map((day) => <div key={day}>{day}</div>)}
       </div>
       <div className="mt-1 grid grid-cols-7 gap-1">
@@ -50,7 +50,7 @@ export function PersianCalendar({ value, onChange, className }: PersianCalendarP
               key={`${view.year}-${view.month}-${day}`}
               type="button"
               className={cn(
-                "grid size-9 place-items-center rounded-md text-sm font-bold hover:bg-slate-50",
+                "grid aspect-square min-h-7 w-full place-items-center rounded-md text-xs font-bold hover:bg-slate-50",
                 isSameDate({ year: view.year, month: view.month, day }, selected) && "bg-primary text-white hover:bg-primary",
                 isSameDate({ year: view.year, month: view.month, day }, today) && !isSameDate({ year: view.year, month: view.month, day }, selected) && "border border-primary/30 text-primary"
               )}
@@ -59,19 +59,19 @@ export function PersianCalendar({ value, onChange, className }: PersianCalendarP
               {toPersianDigits(String(day))}
             </button>
           ) : (
-            <span key={`empty-${index}`} className="size-9" />
+            <span key={`empty-${index}`} className="aspect-square min-h-7 w-full" />
           )
         )}
       </div>
-      <div className="mt-3 flex gap-2 border-t border-border pt-3">
-        <button type="button" className="h-8 flex-1 rounded-md bg-primary px-2 text-xs font-bold text-white" onClick={() => {
+      <div className="mt-2.5 flex gap-2 border-t border-border pt-2.5">
+        <button type="button" className="h-7 flex-1 rounded-md bg-primary px-2 text-[11px] font-bold text-white" onClick={() => {
           const current = gregorianToJalali(new Date());
           setView({ year: current.year, month: current.month });
           onChange(formatJalaliDate(current));
         }}>
           امروز
         </button>
-        <button type="button" className="h-8 rounded-md border border-border px-2 text-xs font-bold text-muted" onClick={() => onChange("")}>
+        <button type="button" className="h-7 rounded-md border border-border px-2 text-[11px] font-bold text-muted" onClick={() => onChange("")}>
           پاک کردن
         </button>
       </div>
@@ -124,7 +124,7 @@ function div(a: number, b: number) {
   return ~~(a / b);
 }
 
-function jalaliToGregorian(jy: number, jm: number, jd: number) {
+export function jalaliToGregorian(jy: number, jm: number, jd: number) {
   jy += 1595;
   let days = -355668 + 365 * jy + div(jy, 33) * 8 + div((jy % 33) + 3, 4) + jd;
   days += jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186;

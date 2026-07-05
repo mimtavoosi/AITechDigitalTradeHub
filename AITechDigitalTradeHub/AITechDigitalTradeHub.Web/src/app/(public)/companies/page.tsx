@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { EmptyState } from "@/components/ui/empty-state";
 import { PageShell } from "@/components/ui/page-shell";
+import { OrganizationListClient } from "@/features/organizations/components/organization-list-client";
 
 export const metadata: Metadata = {
-  title: "شرکت‌ها",
-  description: "پروفایل شرکت‌ها و تیم‌های فعال در حوزه هوش مصنوعی."
+  title: "سازمان‌ها",
+  description: "پروفایل شرکت‌ها، دانشگاه‌ها، پژوهشگاه‌ها و سایر سازمان‌های فعال در حوزه هوش مصنوعی."
 };
 
 export default function CompaniesPage() {
   return (
-    <PageShell title="شرکت‌ها و سازمان‌ها" description="پروفایل شرکت‌های تاییدشده، تیم‌ها، خدمات سازمانی و پروژه‌های انجام‌شده.">
-      <EmptyState title="هنوز شرکتی متصل نشده" description="بعد از اتصال API سازمان‌ها، پروفایل شرکت‌ها و تیم‌های تاییدشده نمایش داده می‌شوند." />
+    <PageShell title="سازمان‌ها" description="شرکت‌ها، دانشگاه‌ها، پژوهشگاه‌ها، استارتاپ‌ها و نهادهای تاییدشده اکوسیستم هوش مصنوعی.">
+      <OrganizationListClient />
     </PageShell>
   );
 }

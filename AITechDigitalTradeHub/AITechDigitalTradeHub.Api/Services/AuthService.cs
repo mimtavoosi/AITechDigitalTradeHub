@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Caching.Memory;
 using NobatPlusDATA.Domain;
 
 namespace AITechDigitalTradeHub.Api.Services
@@ -23,18 +24,21 @@ namespace AITechDigitalTradeHub.Api.Services
         private readonly IConfiguration _configuration;
         private readonly ISmsSender _smsSender;
         private readonly SmsSenderOptions _smsOptions;
+        private readonly IMemoryCache _cache;
         private readonly PasswordHasher<User> _passwordHasher = new();
 
         public AuthService(
             TheAppContext context,
             IConfiguration configuration,
             ISmsSender smsSender,
-            IOptions<SmsSenderOptions> smsOptions)
+            IOptions<SmsSenderOptions> smsOptions,
+            IMemoryCache cache)
         {
             _context = context;
             _configuration = configuration;
             _smsSender = smsSender;
             _smsOptions = smsOptions.Value;
+            _cache = cache;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterRequest request)
@@ -46,6 +50,12 @@ namespace AITechDigitalTradeHub.Api.Services
             if (string.IsNullOrWhiteSpace(normalizedMobile))
             {
                 return AuthResult.Fail("شماره موبایل معتبر نیست");
+            }
+
+            var smsThrottle = CheckSmsThrottle(normalizedMobile);
+            if (smsThrottle != null)
+            {
+                return AuthResult.Fail(smsThrottle);
             }
 
             bool exists = await _context.Users.AnyAsync(x =>
@@ -77,7 +87,6 @@ namespace AITechDigitalTradeHub.Api.Services
                 Email = normalizedEmail,
                 NationalCode = request.NationalCode?.Trim() ?? string.Empty,
                 Username = normalizedUsername,
-                RoleId = role.ID,
                 Status = UserStatus.Active,
                 IsVerified = false,
                 VerificationLevel = 0,
@@ -123,8 +132,15 @@ namespace AITechDigitalTradeHub.Api.Services
             var normalizedLookup = usernameOrEmail.ToLowerInvariant();
             var normalizedMobile = NormalizeMobileNumber(usernameOrEmail);
 
+            var loginThrottle = CheckAttemptThrottle($"auth:login:{normalizedLookup}", 8, TimeSpan.FromMinutes(10));
+            if (loginThrottle != null)
+            {
+                return AuthResult.Fail(loginThrottle);
+            }
+
             var user = await _context.Users
-                .Include(x => x.Role)
+                .Include(x => x.UserRoles)
+                    .ThenInclude(x => x.Role)
                 .SingleOrDefaultAsync(x =>
                     x.Username.ToLower() == normalizedLookup ||
                     x.Email.ToLower() == normalizedLookup ||
@@ -133,6 +149,7 @@ namespace AITechDigitalTradeHub.Api.Services
 
             if (user == null)
             {
+                RegisterAttempt($"auth:login:{normalizedLookup}", TimeSpan.FromMinutes(10));
                 return AuthResult.Fail("نام کاربری یا رمز عبور اشتباه است");
             }
 
@@ -155,6 +172,7 @@ namespace AITechDigitalTradeHub.Api.Services
             var verifyResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (verifyResult == PasswordVerificationResult.Failed)
             {
+                RegisterAttempt($"auth:login:{normalizedLookup}", TimeSpan.FromMinutes(10));
                 return AuthResult.Fail("نام کاربری یا رمز عبور اشتباه است");
             }
 
@@ -175,9 +193,16 @@ namespace AITechDigitalTradeHub.Api.Services
                 return AuthResult.Fail("شماره موبایل معتبر نیست");
             }
 
+            var verifyThrottle = CheckAttemptThrottle($"auth:otp:verify:{normalizedMobile}", 5, TimeSpan.FromMinutes(10));
+            if (verifyThrottle != null)
+            {
+                return AuthResult.Fail(verifyThrottle);
+            }
+
             var loginMethod = await _context.LoginMethods
                 .Include(x => x.User)
-                    .ThenInclude(x => x!.Role)
+                    .ThenInclude(x => x!.UserRoles)
+                        .ThenInclude(x => x.Role)
                 .Where(x =>
                     x.Method == SmsLoginMethod &&
                     x.MobileNumber == normalizedMobile &&
@@ -195,8 +220,9 @@ namespace AITechDigitalTradeHub.Api.Services
                 return AuthResult.Fail("کد تایید منقضی شده است");
             }
 
-            if (!string.Equals(loginMethod.Token, request.Code.Trim(), StringComparison.Ordinal))
+            if (!IsVerificationCodeMatch(loginMethod.Token, request.Code.Trim()))
             {
+                RegisterAttempt($"auth:otp:verify:{normalizedMobile}", TimeSpan.FromMinutes(10));
                 return AuthResult.Fail("کد تایید صحیح نیست");
             }
 
@@ -219,6 +245,12 @@ namespace AITechDigitalTradeHub.Api.Services
                 return AuthOperationResult.Fail("شماره موبایل معتبر نیست");
             }
 
+            var smsThrottle = CheckSmsThrottle(normalizedMobile);
+            if (smsThrottle != null)
+            {
+                return AuthOperationResult.Fail(smsThrottle);
+            }
+
             var loginMethod = await _context.LoginMethods
                 .Where(x => x.Method == SmsLoginMethod && x.MobileNumber == normalizedMobile && x.UserId != null)
                 .OrderByDescending(x => x.CreateDate)
@@ -235,7 +267,7 @@ namespace AITechDigitalTradeHub.Api.Services
                 return AuthOperationResult.Fail(smsResult.ErrorMessage ?? "ارسال کد تایید ناموفق بود");
             }
 
-            loginMethod.Token = smsResult.Code;
+            loginMethod.Token = HashToken(smsResult.Code);
             loginMethod.ExpirationDate = DateTime.UtcNow.AddMinutes(GetVerificationCodeMinutes());
             loginMethod.UpdateDate = DateTime.UtcNow;
             loginMethod.IsActive = true;
@@ -258,7 +290,10 @@ namespace AITechDigitalTradeHub.Api.Services
                 return AuthResult.Fail("نشست معتبر نیست یا منقضی شده است");
             }
 
-            var user = await _context.Users.Include(x => x.Role).SingleOrDefaultAsync(x => x.ID == token.UserId);
+            var user = await _context.Users
+                .Include(x => x.UserRoles)
+                    .ThenInclude(x => x.Role)
+                .SingleOrDefaultAsync(x => x.ID == token.UserId);
             if (user == null || user.Status != UserStatus.Active || !user.IsActive)
             {
                 return AuthResult.Fail("کاربر معتبر نیست");
@@ -308,7 +343,6 @@ namespace AITechDigitalTradeHub.Api.Services
         {
             var user = await _context.Users
                 .AsNoTracking()
-                .Include(x => x.Role)
                 .Include(x => x.UserRoles)
                     .ThenInclude(x => x.Role)
                 .Where(x => x.ID == userId)
@@ -324,8 +358,6 @@ namespace AITechDigitalTradeHub.Api.Services
                         .OrderByDescending(lm => lm.CreateDate)
                         .Select(lm => lm.MobileNumber)
                         .FirstOrDefault(),
-                    RoleId = x.RoleId,
-                    RoleName = x.Role.Name,
                     Roles = x.UserRoles
                         .Where(ur => ur.IsActive)
                         .Select(ur => new UserRoleResponse
@@ -343,14 +375,17 @@ namespace AITechDigitalTradeHub.Api.Services
                 })
                 .SingleOrDefaultAsync();
 
-            if (user != null && !user.Roles.Any(x => x.RoleId == user.RoleId))
+            if (user != null)
             {
-                user.Roles.Add(new UserRoleResponse
+                var primaryRole = user.Roles
+                    .Where(x => x.Status == UserRoleAssignmentStatus.Approved)
+                    .OrderBy(x => x.RoleId)
+                    .FirstOrDefault();
+                if (primaryRole != null)
                 {
-                    RoleId = user.RoleId,
-                    RoleName = user.RoleName ?? string.Empty,
-                    Status = UserRoleAssignmentStatus.Approved
-                });
+                    user.RoleId = primaryRole.RoleId;
+                    user.RoleName = primaryRole.RoleName;
+                }
             }
 
             return user;
@@ -406,11 +441,6 @@ namespace AITechDigitalTradeHub.Api.Services
 
         private async Task<AuthResult> CreateAuthResultAsync(User user)
         {
-            if (user.Role == null)
-            {
-                await _context.Entry(user).Reference(x => x.Role).LoadAsync();
-            }
-
             var approvedRoles = await GetApprovedRolesAsync(user);
             var accessToken = CreateJwt(user, approvedRoles);
             var refreshToken = CreateSecureToken();
@@ -441,8 +471,8 @@ namespace AITechDigitalTradeHub.Api.Services
                     Email = user.Email,
                     Username = user.Username,
                     MobileNumber = await GetUserMobileNumberAsync(user.ID),
-                    RoleId = user.RoleId,
-                    RoleName = user.Role?.Name,
+                    RoleId = approvedRoles.OrderBy(x => x.ID).Select(x => x.ID).FirstOrDefault(),
+                    RoleName = approvedRoles.OrderBy(x => x.ID).Select(x => x.Name).FirstOrDefault(),
                     Roles = approvedRoles
                         .Select(x => new UserRoleResponse
                         {
@@ -506,11 +536,6 @@ namespace AITechDigitalTradeHub.Api.Services
                 .Select(x => x.Role)
                 .ToListAsync();
 
-            if (user.Role != null && roles.All(x => x.ID != user.RoleId))
-            {
-                roles.Add(user.Role);
-            }
-
             return roles;
         }
 
@@ -528,7 +553,7 @@ namespace AITechDigitalTradeHub.Api.Services
                 Description = "Default registered user",
                 CreateDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow,
-                Users = new List<User>()
+                UserRoles = new List<UserRole>()
             };
 
             await _context.Roles.AddAsync(role);
@@ -549,7 +574,7 @@ namespace AITechDigitalTradeHub.Api.Services
                     UserId = userId,
                     MobileNumber = mobileNumber,
                     Method = SmsLoginMethod,
-                    Token = code,
+                    Token = HashToken(code),
                     ExpirationDate = expiresAt,
                     IsActive = true,
                     CreateDate = DateTime.UtcNow,
@@ -558,7 +583,7 @@ namespace AITechDigitalTradeHub.Api.Services
             }
             else
             {
-                loginMethod.Token = code;
+                loginMethod.Token = HashToken(code);
                 loginMethod.ExpirationDate = expiresAt;
                 loginMethod.UpdateDate = DateTime.UtcNow;
                 loginMethod.IsActive = true;
@@ -622,6 +647,43 @@ namespace AITechDigitalTradeHub.Api.Services
         private static string CreateSecureToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        }
+
+        private string? CheckSmsThrottle(string mobileNumber)
+        {
+            var cooldownKey = $"auth:sms:cooldown:{mobileNumber}";
+            if (_cache.TryGetValue(cooldownKey, out _))
+            {
+                return "برای ارسال دوباره کد کمی صبر کنید";
+            }
+
+            var attemptMessage = CheckAttemptThrottle($"auth:sms:window:{mobileNumber}", 5, TimeSpan.FromHours(1));
+            if (attemptMessage != null)
+            {
+                return attemptMessage;
+            }
+
+            _cache.Set(cooldownKey, true, TimeSpan.FromSeconds(60));
+            RegisterAttempt($"auth:sms:window:{mobileNumber}", TimeSpan.FromHours(1));
+            return null;
+        }
+
+        private string? CheckAttemptThrottle(string key, int maxAttempts, TimeSpan window)
+        {
+            var attempts = _cache.TryGetValue<int>(key, out var value) ? value : 0;
+            return attempts >= maxAttempts ? "تعداد تلاش‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید" : null;
+        }
+
+        private void RegisterAttempt(string key, TimeSpan window)
+        {
+            var attempts = _cache.TryGetValue<int>(key, out var value) ? value : 0;
+            _cache.Set(key, attempts + 1, window);
+        }
+
+        private static bool IsVerificationCodeMatch(string storedToken, string submittedCode)
+        {
+            return string.Equals(storedToken, HashToken(submittedCode), StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(storedToken, submittedCode, StringComparison.Ordinal);
         }
 
         private static string HashToken(string token)

@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace AITechDigitalTradeHub.Data.Domain
 {
-    public enum ReviewTargetType : byte { User = 1, Organization = 2, Listing = 3, Contract = 4 }
-    public enum ReviewContextType : byte { Order = 1, Contract = 2 }
+    public enum ReviewTargetType : byte { User = 1, Organization = 2, Listing = 3, Contract = 4, Course = 5 }
+    public enum ReviewContextType : byte { Order = 1, Contract = 2, Course = 3, TeacherBooking = 4 }
 
     /// <summary>امتیازدهی/نظر (فقط بعد از تراکنش معتبر).</summary>
     public class Review : BaseEntity

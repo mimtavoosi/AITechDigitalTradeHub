@@ -18,11 +18,20 @@ namespace AITechDigitalTradeHub.Data.Domain
         [MaxLength(160)]
         public string Title { get; set; } = string.Empty;
 
+        [MaxLength(1000)]
+        public string? Description { get; set; }
+
         /// <summary>مبلغ مرحله.</summary>
         public decimal Amount { get; set; }
 
+        /// <summary>شروع برنامه ریزی شده مرحله.</summary>
+        public DateTime? StartsAt { get; set; }
+
         /// <summary>ددلاین مرحله.</summary>
         public DateTime? DueAt { get; set; }
+
+        /// <summary>مدت برنامه ریزی شده مرحله بر حسب روز.</summary>
+        public int? DurationDays { get; set; }
 
         public MilestoneStatus Status { get; set; } = MilestoneStatus.Pending;
 

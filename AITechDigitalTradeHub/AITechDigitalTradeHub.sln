@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AITechDigitalTradeHub.Data"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AITechDigitalTradeHub.Api", "AITechDigitalTradeHub.Api\AITechDigitalTradeHub.Api.csproj", "{212440CD-7A6F-414D-8731-AD7E8CC5A6F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AITechDigitalTradeHub.Tests", "AITechDigitalTradeHub.Tests\AITechDigitalTradeHub.Tests.csproj", "{6CFC5334-A3BF-4F44-9E2B-377AB4B0872B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{212440CD-7A6F-414D-8731-AD7E8CC5A6F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{212440CD-7A6F-414D-8731-AD7E8CC5A6F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{212440CD-7A6F-414D-8731-AD7E8CC5A6F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CFC5334-A3BF-4F44-9E2B-377AB4B0872B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CFC5334-A3BF-4F44-9E2B-377AB4B0872B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CFC5334-A3BF-4F44-9E2B-377AB4B0872B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CFC5334-A3BF-4F44-9E2B-377AB4B0872B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

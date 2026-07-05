@@ -32,17 +32,17 @@ export const authApi = {
       skipAuth: true
     });
   },
-  refresh(refreshToken: string) {
+  refresh() {
     return apiRequest<AuthResult>(apiEndpoints.auth.refresh, {
       method: "POST",
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({}),
       skipAuth: true
     });
   },
-  logout(refreshToken: string) {
+  logout() {
     return apiRequest<{ status: boolean; errorMessage?: string }>(apiEndpoints.auth.logout, {
       method: "POST",
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({}),
       skipAuth: true
     });
   },

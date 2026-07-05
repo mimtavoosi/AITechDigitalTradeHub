@@ -57,7 +57,7 @@ export function DashboardServicesClient() {
 
   return (
     <div className="grid gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-      <section className="rounded-lg border border-border bg-white p-5">
+      <section className="dashboard-card p-5">
         <h2 className="text-lg font-black">ثبت خدمت یا تجهیز</h2>
         <form className="mt-4 grid gap-3" onSubmit={handleCreate}>
           <input className="h-11 rounded-md border border-border px-3 focus-ring" name="title" placeholder="عنوان" required />
@@ -76,16 +76,16 @@ export function DashboardServicesClient() {
             ثبت
           </button>
         </form>
-        {message ? <div className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-sm text-muted">{message}</div> : null}
+        {message ? <div className="mt-4 rounded-md bg-background/80 px-3 py-2 text-sm text-muted">{message}</div> : null}
       </section>
 
       <section className="space-y-5">
-        <div className="rounded-lg border border-border bg-white p-5">
+        <div className="dashboard-card p-5">
           <h2 className="text-lg font-black">لیستینگ‌های من</h2>
           {listingsQuery.isLoading ? <Loader2 className="mt-6 size-5 animate-spin text-muted" /> : null}
           <div className="mt-4 grid gap-3">
             {listings.map((item) => (
-              <div key={item.id} className="rounded-md border border-border p-3">
+              <div key={item.id} className="rounded-md border border-border/70 bg-white/78 p-3 shadow-panel">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="font-bold">{item.title}</div>
@@ -113,12 +113,12 @@ export function DashboardServicesClient() {
 
 function OrderBox({ title, orders, loading }: { title: string; orders: Array<{ id: string; listingTitle?: string | null; status: string | number; priceAmount: number }>; loading: boolean }) {
   return (
-    <div className="rounded-lg border border-border bg-white p-5">
+    <div className="dashboard-card p-5">
       <h2 className="font-black">{title}</h2>
       {loading ? <Loader2 className="mt-5 size-5 animate-spin text-muted" /> : null}
       <div className="mt-3 grid gap-2">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-md bg-slate-50 p-3 text-sm">
+          <div key={order.id} className="rounded-md bg-background/75 p-3 text-sm">
             <div className="font-bold">{order.listingTitle ?? `سفارش ${order.id}`}</div>
             <div className="mt-1 text-xs text-muted">{String(order.status)} / {order.priceAmount.toLocaleString("fa-IR")}</div>
           </div>

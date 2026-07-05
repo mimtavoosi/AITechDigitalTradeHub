@@ -19,11 +19,13 @@ namespace AITechDigitalTradeHub.Api.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderRep _orderRep;
+        private readonly IFinanceRep _financeRep;
         private readonly TheAppContext _context;
 
-        public OrdersController(IOrderRep orderRep, TheAppContext context)
+        public OrdersController(IOrderRep orderRep, IFinanceRep financeRep, TheAppContext context)
         {
             _orderRep = orderRep;
+            _financeRep = financeRep;
             _context = context;
         }
 
@@ -246,14 +248,17 @@ namespace AITechDigitalTradeHub.Api.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                var fee = await _financeRep.CalculateFeeForReferenceTypeAsync("Order", amount);
+
                 payer.Balance -= amount;
                 payer.UpdateDate = DateTime.UtcNow;
-                payee.Balance += amount;
+                payee.Balance += amount - fee;
                 payee.UpdateDate = DateTime.UtcNow;
                 order.Status = OrderStatus.Paid;
                 order.UpdateDate = DateTime.UtcNow;
 
-                await _context.Transactions.AddRangeAsync(
+                var transactions = new List<Transaction>
+                {
                     new Transaction
                     {
                         WalletId = payer.ID,
@@ -277,7 +282,26 @@ namespace AITechDigitalTradeHub.Api.Controllers
                         CreateDate = DateTime.UtcNow,
                         UpdateDate = DateTime.UtcNow,
                         IsActive = true
+                    }
+                };
+
+                if (fee > 0)
+                {
+                    transactions.Add(new Transaction
+                    {
+                        WalletId = payee.ID,
+                        TxType = TransactionType.Fee,
+                        Amount = -fee,
+                        ReferenceType = "Order",
+                        ReferenceId = order.ID,
+                        Status = TransactionStatus.Success,
+                        CreateDate = DateTime.UtcNow,
+                        UpdateDate = DateTime.UtcNow,
+                        IsActive = true
                     });
+                }
+
+                await _context.Transactions.AddRangeAsync(transactions);
 
                 await _context.OrderEvents.AddAsync(new OrderEvent
                 {

@@ -48,7 +48,7 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
                     CreateDate = DateTime.UtcNow,
                     UpdateDate = DateTime.UtcNow,
                     IsActive = true,
-                    Users = new List<User>(),
+                    UserRoles = new List<UserRole>(),
                     PermissionRoles = new List<MTPermissionCenter_PermissionRole>()
                 });
             }
@@ -75,7 +75,10 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
                 [PermissionKeys.EducationCourseManage] = "مدیریت دوره‌های آموزشی",
                 [PermissionKeys.EducationInstructorManage] = "مدیریت پروفایل مدرس",
                 [PermissionKeys.EducationBookingCreate] = "رزرو جلسه آموزشی",
-                [PermissionKeys.EducationBookingManage] = "مدیریت رزروهای آموزشی"
+                [PermissionKeys.EducationBookingManage] = "مدیریت رزروهای آموزشی",
+                [PermissionKeys.EducationAdminManage] = "مدیریت کل ماژول آموزش",
+                [PermissionKeys.OrganizationManage] = "مدیریت سازمان‌های تحت اختیار",
+                [PermissionKeys.OrganizationAdminManage] = "مدیریت کل سازمان‌ها"
             };
 
             foreach (var permission in permissions)
@@ -107,8 +110,6 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
             {
                 [RoleNames.User] = new[]
                 {
-                    PermissionKeys.CreateListing,
-                    PermissionKeys.ManageOwnListing,
                     PermissionKeys.CreateProject,
                     PermissionKeys.ManageOwnProject,
                     PermissionKeys.ManageProjectProposal,
@@ -156,8 +157,22 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
                     PermissionKeys.UseWallet,
                     PermissionKeys.ManageTickets
                 },
+                [RoleNames.OrganizationAdmin] = new[]
+                {
+                    PermissionKeys.OrganizationManage,
+                    PermissionKeys.CreateProject,
+                    PermissionKeys.ManageOwnProject,
+                    PermissionKeys.ManageProjectProposal,
+                    PermissionKeys.CreateListing,
+                    PermissionKeys.ManageOwnListing,
+                    PermissionKeys.UseWallet,
+                    PermissionKeys.ManageTickets,
+                    PermissionKeys.EducationCourseRead
+                },
                 [RoleNames.Investor] = new[]
                 {
+                    PermissionKeys.CreateProject,
+                    PermissionKeys.ManageOwnProject,
                     PermissionKeys.UseWallet,
                     PermissionKeys.ManageTickets,
                     PermissionKeys.ReviewCreate,
@@ -188,7 +203,10 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
                     PermissionKeys.EducationBookingCreate,
                     PermissionKeys.EducationCourseManage,
                     PermissionKeys.EducationInstructorManage,
-                    PermissionKeys.EducationBookingManage
+                    PermissionKeys.EducationBookingManage,
+                    PermissionKeys.EducationAdminManage,
+                    PermissionKeys.OrganizationManage,
+                    PermissionKeys.OrganizationAdminManage
                 },
                 [RoleNames.SuperAdmin] = Array.Empty<string>()
             };

@@ -118,7 +118,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                .AnyAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
                             if (result.Status)
                             {
-                                var loginRow = await _context.Users.Include(x=> x.Role)
+                                var loginRow = await _context.Users
+                                    .Include(x => x.UserRoles)
+                                        .ThenInclude(x => x.Role)
                             .AsNoTracking()
                             .SingleOrDefaultAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
                                 if (loginRow != null)
@@ -147,7 +149,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                .AnyAsync(x => x.Username == userName);
                             if (result.Status)
                             {
-                                var loginRow = await _context.Users.Include(x => x.Role)
+                                var loginRow = await _context.Users
+                                    .Include(x => x.UserRoles)
+                                        .ThenInclude(x => x.Role)
                .AsNoTracking()
                .SingleOrDefaultAsync(x => x.Username == userName);
                                 if (loginRow != null)
@@ -190,7 +194,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 .AsNoTracking()
                 .Where(x =>
                      ((AddressId > 0 ? x.AddressId == AddressId : true) &&
-                      (RoleId > 0 ? x.RoleId == RoleId : true)) &&
+                      (RoleId > 0 ? x.UserRoles.Any(ur => ur.RoleId == RoleId && ur.IsActive) : true)) &&
                        ((!string.IsNullOrEmpty(x.FirstName) && x.FirstName.Contains(searchText)) ||
                        (!string.IsNullOrEmpty(x.LastName) && x.LastName.Contains(searchText)) ||
                        (!string.IsNullOrEmpty(x.Email) && x.Email.Contains(searchText)) ||
@@ -201,7 +205,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                      .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                    .Include(x => x.Role)
+                    .Include(x => x.UserRoles)
+                        .ThenInclude(x => x.Role)
                     .Include(x => x.PaymentHistories)
                     .ToListAsync();
 
@@ -230,7 +235,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             {
                 result.Result = await _context.Users
                     .AsNoTracking()
-                    .Include(x => x.Role)
+                    .Include(x => x.UserRoles)
+                        .ThenInclude(x => x.Role)
                     .Include(x => x.PaymentHistories)
                     .SingleOrDefaultAsync(x => x.ID == userId);
 
@@ -294,10 +300,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
 
         public async Task<long?> GetUserRoleIdAsync(long userId, CancellationToken ct = default)
         {
-            return await _context.Users.AsNoTracking()
-                       .Where(u => u.ID == userId)
-                       .Select(u => (long?)u.RoleId)
-                       .SingleOrDefaultAsync(ct);
+            return await _context.UserRoles.AsNoTracking()
+                       .Where(ur => ur.UserId == userId && ur.IsActive && ur.Status == UserRoleAssignmentStatus.Approved)
+                       .OrderBy(ur => ur.RoleId)
+                       .Select(ur => (long?)ur.RoleId)
+                       .FirstOrDefaultAsync(ct);
         }
     }
 }

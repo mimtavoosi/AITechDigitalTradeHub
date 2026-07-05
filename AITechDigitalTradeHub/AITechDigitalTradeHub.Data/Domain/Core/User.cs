@@ -19,8 +19,6 @@ namespace AITechDigitalTradeHub.Data.Domain
         public string Username { get; set; }
         public string PasswordHash { get; set; } // هش رمز عبور
         public long PermissionsVersion { get; set; } = 1;
-        public long RoleId { get; set; } // کلید خارجی به Role
-        public Role Role { get; set; } // ارتباط با Role
         public long? AddressId { get; set; } // کلید خارجی به Address
         public Address? Address { get; set; } // ارتباط با Address
 
@@ -35,6 +33,18 @@ namespace AITechDigitalTradeHub.Data.Domain
 
         /// <summary>وضعیت حساب.</summary>
         public UserStatus Status { get; set; } = UserStatus.Active;
+
+        [MaxLength(180)]
+        public string? ResumeHeadline { get; set; }
+
+        [MaxLength(2000)]
+        public string? ResumeSummary { get; set; }
+
+        [MaxLength(4000)]
+        public string? ResumeExperience { get; set; }
+
+        [MaxLength(1000)]
+        public string? ResumeEducation { get; set; }
 
         public ICollection<PaymentHistory> PaymentHistories { get; set; } // ارتباط یک به چند با PaymentHistory
         public ICollection<LoginMethod> LoginMethods { get; set; } 

@@ -1,20 +1,24 @@
 import { appConfig } from "@/lib/config";
-import { useAuthStore } from "@/store/auth-store";
+import { useAuthStore, type AuthUser } from "@/store/auth-store";
 
 type RequestOptions = RequestInit & {
   authToken?: string;
   skipAuth?: boolean;
 };
 
+let refreshPromise: Promise<string | null> | null = null;
+
 export class ApiRequestError extends Error {
   statusCode: number;
   errors?: unknown;
+  payload?: unknown;
 
-  constructor(message: string, statusCode: number, errors?: unknown) {
+  constructor(message: string, statusCode: number, errors?: unknown, payload?: unknown) {
     super(message);
     this.name = "ApiRequestError";
     this.statusCode = statusCode;
     this.errors = errors;
+    this.payload = payload;
   }
 }
 
@@ -37,21 +41,87 @@ export async function apiRequest<TData>(
   const response = await fetch(`${appConfig.apiBaseUrl}${path}`, {
     ...options,
     headers,
+    credentials: "include",
     cache: "no-store"
   });
 
-  const payload = (await response.json().catch(() => null)) as unknown;
+  if (response.status === 401 && !options.skipAuth) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      const retryHeaders = new Headers(headers);
+      retryHeaders.set("Authorization", `Bearer ${refreshed}`);
+      const retryResponse = await fetch(`${appConfig.apiBaseUrl}${path}`, {
+        ...options,
+        headers: retryHeaders,
+        credentials: "include",
+        cache: "no-store"
+      });
+      return handleResponse<TData>(retryResponse);
+    }
+  }
 
+  return handleResponse<TData>(response);
+}
+
+async function handleResponse<TData>(response: Response) {
+  const payload = (await response.json().catch(() => null)) as unknown;
   if (!response.ok) {
     const errorPayload = isErrorPayload(payload) ? payload : null;
     throw new ApiRequestError(
       errorPayload?.message ?? errorPayload?.errorMessage ?? "درخواست با خطا مواجه شد",
       response.status,
-      errorPayload?.errors
+      errorPayload?.errors,
+      payload
     );
   }
 
   return payload as TData;
+}
+
+async function refreshAccessToken() {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = performRefreshAccessToken();
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+async function performRefreshAccessToken() {
+  try {
+    const response = await fetch(`${appConfig.apiBaseUrl}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({}),
+      credentials: "include",
+      cache: "no-store"
+    });
+
+    const payload = (await response.json().catch(() => null)) as {
+      status?: boolean;
+      accessToken?: string;
+      user?: AuthUser;
+    } | null;
+
+    if (!response.ok || !payload?.status || !payload.accessToken || !payload.user) {
+      useAuthStore.getState().clearSession();
+      return null;
+    }
+
+    useAuthStore.getState().setSession({
+      accessToken: payload.accessToken,
+      user: payload.user
+    });
+    return payload.accessToken;
+  } catch {
+    useAuthStore.getState().clearSession();
+    return null;
+  }
 }
 
 export function toQueryString(params: Record<string, string | number | boolean | null | undefined>) {

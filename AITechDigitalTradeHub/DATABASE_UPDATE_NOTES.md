@@ -10,6 +10,120 @@
 
 ---
 
+## 2026-06-21 - Migration Reconciliation For Education Schema
+
+اسکریپت دستی `artifacts/education_recommendation_schema.sql` ممکن است قبل از migration اجرا شده باشد. در این حالت ستون‌ها و جدول‌های آموزش وجود دارند، اما migration زیر هنوز در `__EFMigrationsHistory` ثبت نشده است:
+
+```txt
+20260620144014_AddUserPanelPreferences
+```
+
+نتیجه قبلی، خطای تکراری بودن ستون‌هایی مانند `Courses.DifficultyScore` هنگام `Update-Database` بود.
+
+### Fix
+
+- migration `20260620144014_AddUserPanelPreferences` برای ستون‌ها، جدول‌ها و indexهای موجود idempotent شد.
+- migration `20260620153058_ExtendUserPanelPreferences` نیز برای ستون‌های موجود idempotent شد.
+- هیچ داده یا object موجودی حذف نمی‌شود؛ migration فقط اجزای مفقود را ایجاد و سپس در تاریخچه EF ثبت می‌کند.
+
+### Database Action
+
+بعد از دریافت نسخه اصلاح‌شده، همان دستور را دوباره اجرا کن:
+
+```powershell
+Update-Database -Project AITechDigitalTradeHub.Data -StartupProject AITechDigitalTradeHub.Api -Context TheAppContext
+```
+
+نیازی به حذف دستی ستون `DifficultyScore` یا دستکاری مستقیم `__EFMigrationsHistory` نیست.
+
+---
+
+## 2026-06-21 - Instructor Course Students Dashboard
+
+این مرحله migration یا تغییر ساختار دیتابیس ندارد و از جدول‌های موجود آموزش استفاده می‌کند.
+
+### Backend Behavior
+
+- endpoint جدید `GET /api/education/courses/{courseId}/students` برای پنل مدرس اضافه شد.
+- فقط مدرس مالک دوره می‌تواند اطلاعات دانش‌آموزهای همان دوره را دریافت کند.
+- دسترسی endpoint با Permission موجود `education.courses.manage` کنترل می‌شود.
+- پاسخ هر دانش‌آموز شامل اطلاعات زیر است:
+  - شناسه ثبت‌نام و شناسه کاربر
+  - نام، نام کاربری و ایمیل
+  - وضعیت ثبت‌نام
+  - مبلغ پرداخت‌شده
+  - درصد پیشرفت کلی
+  - تاریخ ثبت‌نام و تاریخ تکمیل
+  - پیشرفت هر درس شامل عنوان درس، وضعیت و درصد پیشرفت
+- داده‌ها از جدول‌های زیر خوانده می‌شوند:
+  - `Courses`
+  - `CourseEnrollments`
+  - `CourseLessonProgresses`
+  - `CourseLessons`
+  - `Users`
+- دوره باید فعال و حذف‌نشده باشد و مقدار `InstructorUserId` آن با کاربر جاری برابر باشد؛ در غیر این صورت پاسخ `404` برگردانده می‌شود.
+- برای این endpoint Permission جدیدی ساخته نشده و نقش `Instructor` از قبل Permission مورد نیاز را دارد.
+
+### API Response
+
+مدل خروجی جدید:
+
+```txt
+CourseStudentEnrollmentResponse
+```
+
+فیلدهای اصلی:
+
+```txt
+Id
+CourseId
+StudentUserId
+StudentName
+StudentUsername
+StudentEmail
+Status
+PaidAmount
+ProgressPercent
+CompletedAt
+EnrolledAt
+LessonProgresses[]
+```
+
+### Database Action
+
+نیازی به migration، seed یا اجرای SQL جدید نیست.
+
+---
+
+## 2026-06-19 - Enhanced Project Milestones UX
+
+### EF Migration
+
+برای اضافه شدن توضیح، زمان شروع و مدت اجرای هر milestone:
+
+```powershell
+dotnet ef database update --project AITechDigitalTradeHub.Data --startup-project AITechDigitalTradeHub.Api
+```
+
+Migration مربوط:
+
+```txt
+20260619120713_EnhanceProjectMilestones
+```
+
+### Backend Behavior
+
+- `Milestones` فیلدهای `Description`، `StartsAt` و `DurationDays` دارد.
+- پاسخ API پروژه برای هر milestone مقدارهای `DaysRemaining` و `IsOverdue` را برمی‌گرداند.
+- `POST /api/projects/milestones/{milestoneId}/escrow/hold` دیگر نیازمند وارد کردن دستی کیف پول مجری نیست؛ اگر `PayeeWalletId` ارسال نشود، کیف پول مجری از قرارداد پیدا یا ساخته می‌شود.
+- تحویل milestone از `FileUploadId` پشتیبانی می‌کند و فرانت فایل تحویل را با `EntityType=ProjectDeliverable` آپلود می‌کند.
+
+### Database Action
+
+فقط migration بالا لازم است و seed جدید ندارد.
+
+---
+
 ## 2026-06-17 - Multi Role + User Capability Admin
 
 ### EF Migration
@@ -261,6 +375,34 @@ WHEN NOT MATCHED THEN
     INSERT (UserId, RoleId, Status, RequestedAt, ApprovedAt, CreateDate, UpdateDate, IsActive)
     VALUES (source.UserId, source.RoleId, 2, SYSUTCDATETIME(), SYSUTCDATETIME(), SYSUTCDATETIME(), SYSUTCDATETIME(), 1);
 ```
+
+---
+
+## 2026-06-19 - Education Completion Pass
+
+این مرحله migration `20260619192716_AddEducationCertificatesProgressAndResume` دارد.
+
+### Backend Behavior
+
+- `ReviewTargetType.Course` و contextهای `Course` و `TeacherBooking` به جریان امتیازدهی اضافه شدند.
+- کنترل دسترسی محتوای پولی از روی `CourseEnrollment` فعال/تکمیل‌شده انجام می‌شود.
+- درآمد مدرس از روی `CourseEnrollments` پرداخت‌شده و `TeacherBookings` تایید/تکمیل‌شده محاسبه می‌شود.
+- پنل ادمین آموزش از جدول‌های موجود `Courses` و `TeacherBookings` خواندن/تغییر وضعیت انجام می‌دهد.
+- گواهی دوره در جدول `CourseCertificates` ذخیره می‌شود.
+- پیشرفت درس‌ها در جدول `CourseLessonProgresses` ذخیره و از روی آن درصد کلی enrollment محاسبه می‌شود.
+- رزومه‌ساز متنی در فیلدهای `ResumeHeadline`، `ResumeSummary`، `ResumeExperience` و `ResumeEducation` روی جدول `Users` ذخیره می‌شود.
+- لغو رزرو آموزشی تاییدشده، اگر پولی باشد، تراکنش refund معکوس بین کیف پول مدرس و دانشجو ثبت می‌کند.
+
+### Database Action
+
+اجرای migration انجام شد و جدول‌ها/فیلدهای زیر اضافه شدند:
+
+- `CourseCertificates`
+- `CourseLessonProgresses`
+- `Users.ResumeHeadline`
+- `Users.ResumeSummary`
+- `Users.ResumeExperience`
+- `Users.ResumeEducation`
 
 ---
 

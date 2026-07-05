@@ -29,11 +29,99 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Users
         public byte VerificationLevel { get; set; }
     }
 
+    public class UpdateProjectProfileRequest
+    {
+        public List<long> SkillTagIds { get; set; } = new();
+        public long? ResumeFileUploadId { get; set; }
+
+        [MaxLength(180)]
+        public string? ResumeHeadline { get; set; }
+
+        [MaxLength(2000)]
+        public string? ResumeSummary { get; set; }
+
+        [MaxLength(4000)]
+        public string? ResumeExperience { get; set; }
+
+        [MaxLength(1000)]
+        public string? ResumeEducation { get; set; }
+    }
+
+    public class PanelPreferenceRequest
+    {
+        [MaxLength(40)]
+        public string ThemeKey { get; set; } = "default";
+
+        [MaxLength(24)]
+        public string DensityKey { get; set; } = "comfortable";
+
+        [MaxLength(24)]
+        public string FontScale { get; set; } = "normal";
+
+        [MaxLength(24)]
+        public string FontFamily { get; set; } = "vazirmatn";
+
+        [MaxLength(24)]
+        public string SidebarMode { get; set; } = "dark";
+
+        public List<string> CardOrder { get; set; } = new();
+        public List<string> HiddenItems { get; set; } = new();
+    }
+
+    public class PanelPreferenceResponse
+    {
+        public string PanelKey { get; set; } = string.Empty;
+        public string ThemeKey { get; set; } = "default";
+        public string DensityKey { get; set; } = "comfortable";
+        public string FontScale { get; set; } = "normal";
+        public string FontFamily { get; set; } = "vazirmatn";
+        public string SidebarMode { get; set; } = "dark";
+        public List<string> CardOrder { get; set; } = new();
+        public List<string> HiddenItems { get; set; } = new();
+        public DateTime? UpdateDate { get; set; }
+    }
+
     public class RoleOptionResponse
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+    }
+
+    public class UserProjectSkillResponse
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Slug { get; set; }
+    }
+
+    public class UserPortfolioItemResponse
+    {
+        public long Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? ExternalUrl { get; set; }
+    }
+
+    public class UserProjectProfileResponse
+    {
+        public long UserId { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public string? MobileNumber { get; set; }
+        public bool IsVerified { get; set; }
+        public byte VerificationLevel { get; set; }
+        public decimal TrustScore { get; set; }
+        public int CompletedProjectsCount { get; set; }
+        public List<UserProjectSkillResponse> Skills { get; set; } = new();
+        public long? ResumeFileUploadId { get; set; }
+        public string? ResumeFileName { get; set; }
+        public string? ResumeFileUrl { get; set; }
+        public string? ResumeHeadline { get; set; }
+        public string? ResumeSummary { get; set; }
+        public string? ResumeExperience { get; set; }
+        public string? ResumeEducation { get; set; }
+        public List<UserPortfolioItemResponse> PortfolioItems { get; set; } = new();
     }
 
     public class UserRoleAssignmentResponse

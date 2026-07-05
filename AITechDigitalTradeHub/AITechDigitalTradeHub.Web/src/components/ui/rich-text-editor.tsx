@@ -3,6 +3,7 @@
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { AlignCenter, AlignLeft, AlignRight, Bold, Code2, Eraser, Heading1, Heading2, Highlighter, ImageIcon, Italic, Link, List, ListOrdered, Quote, Redo2, Strikethrough, Underline, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 type RichTextEditorProps = {
   label?: string;
@@ -37,13 +38,14 @@ export function RichTextEditor({
   const [highlight, setHighlight] = useState("#fde68a");
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value || "";
+    const safeValue = sanitizeRichHtml(value);
+    if (editorRef.current && editorRef.current.innerHTML !== safeValue) {
+      editorRef.current.innerHTML = safeValue;
     }
   }, [value]);
 
   function emit() {
-    onChange(editorRef.current?.innerHTML ?? "");
+    onChange(sanitizeRichHtml(editorRef.current?.innerHTML ?? ""));
   }
 
   function run(command: string, commandValue?: string) {
@@ -74,9 +76,9 @@ export function RichTextEditor({
   }
 
   return (
-    <div className={cn("grid gap-1.5 text-sm", className)}>
+    <div className={cn("grid min-w-0 gap-1.5 text-sm", className)}>
       {label ? <div className="font-bold text-foreground">{label}</div> : null}
-      <div className={cn("rounded-lg border bg-white", error ? "border-danger" : "border-border")}>
+      <div className={cn("min-w-0 overflow-hidden rounded-lg border bg-white", error ? "border-danger" : "border-border")}>
         <div className="flex flex-wrap gap-1 border-b border-border p-2">
           <ToolbarButton title="Bold" onClick={() => run("bold")}><Bold className="size-4" /></ToolbarButton>
           <ToolbarButton title="Italic" onClick={() => run("italic")}><Italic className="size-4" /></ToolbarButton>
@@ -119,7 +121,7 @@ export function RichTextEditor({
           role="textbox"
           aria-multiline
           data-placeholder={placeholder}
-          className="prose-editor min-h-52 overflow-auto px-4 py-3 text-sm leading-7 outline-none empty:before:text-muted empty:before:content-[attr(data-placeholder)]"
+          className="prose-editor min-h-52 min-w-0 overflow-auto px-4 py-3 text-sm leading-7 outline-none empty:before:text-muted empty:before:content-[attr(data-placeholder)]"
           style={{ minHeight }}
           onInput={emit}
           onBlur={emit}
@@ -128,6 +130,20 @@ export function RichTextEditor({
             if (file?.type.startsWith("image/")) {
               event.preventDefault();
               void compressImage(file, maxImageWidth, imageQuality).then((src) => run("insertImage", src));
+              return;
+            }
+
+            const html = event.clipboardData.getData("text/html");
+            if (html) {
+              event.preventDefault();
+              run("insertHTML", sanitizeRichHtml(html));
+              return;
+            }
+
+            const text = event.clipboardData.getData("text/plain");
+            if (text) {
+              event.preventDefault();
+              run("insertText", text);
             }
           }}
         />

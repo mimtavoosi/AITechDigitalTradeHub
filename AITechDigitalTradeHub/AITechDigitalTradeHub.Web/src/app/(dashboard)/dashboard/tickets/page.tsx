@@ -1,11 +1,11 @@
-import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardPageHeader } from "@/components/ui/dashboard-page-header";
+import { TicketsClient } from "@/features/tickets/components/tickets-client";
 
 export default function DashboardTicketsPage() {
   return (
     <>
-      <DashboardPageHeader title="تیکت‌ها" description="درخواست‌های پشتیبانی و گفتگوی کاربر با تیم پشتیبانی." />
-      <EmptyState title="هنوز تیکتی ثبت نشده" description="بعد از اتصال API تیکتینگ، تاریخچه و وضعیت درخواست‌ها در این بخش قرار می‌گیرد." />
+      <DashboardPageHeader title="تیکت‌ها" description="درخواست‌های پشتیبانی، گفتگوی کاربر با تیم پشتیبانی و پیوست‌های هر پرونده." />
+      <TicketsClient />
     </>
   );
 }

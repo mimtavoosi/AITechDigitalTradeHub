@@ -4,7 +4,7 @@ namespace AITechDigitalTradeHub.Data.Domain
 {
     public enum OrganizationInvitationStatus : byte { Pending = 1, Accepted = 2, Rejected = 3, Expired = 4, Cancelled = 5 }
 
-    /// <summary>دعوت عضو به شرکت پیش از تبدیل شدن به OrganizationMember.</summary>
+    /// <summary>دعوت عضو به سازمان پیش از تبدیل شدن به OrganizationMember.</summary>
     public class OrganizationInvitation : BaseEntity
     {
         public long OrganizationId { get; set; }

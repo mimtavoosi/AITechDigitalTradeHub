@@ -1,0 +1,21 @@
+# .NET build output
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Next.js / Node.js generated files
+AITechDigitalTradeHub.Web/.next/
+AITechDigitalTradeHub.Web/node_modules/
+AITechDigitalTradeHub.Web/out/
+AITechDigitalTradeHub.Web/tsconfig.tsbuildinfo
+AITechDigitalTradeHub.Web/.env*.local
+
+# Generated publish and temporary output
+artifacts/api-publish-check/
+
+# Editor and operating-system files
+.vs/
+.idea/
+.DS_Store
+Thumbs.db

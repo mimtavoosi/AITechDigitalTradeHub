@@ -38,7 +38,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var project = await _context.Projects.AsNoTracking().SingleOrDefaultAsync(x => x.ID == proposal.ProjectId);
+                var project = await _context.Projects.AsNoTracking().SingleOrDefaultAsync(x => x.ID == proposal.ProjectId && x.IsActive && x.DeleteDate == null);
                 if (project == null)
                 {
                     result.Status = false;
@@ -50,6 +50,21 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 {
                     result.Status = false;
                     result.ErrorMessage = "کارفرما نمی‌تواند برای پروژه خودش پیشنهاد ثبت کند";
+                    return result;
+                }
+
+                if (project.Status is not (ProjectStatus.Published or ProjectStatus.Bidding))
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "این پروژه دیگر در مرحله دریافت پیشنهاد نیست";
+                    return result;
+                }
+
+                bool hasContract = await _context.Contracts.AnyAsync(x => x.ProjectId == proposal.ProjectId);
+                if (hasContract)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "برای این پروژه قبلاً قرارداد ساخته شده است";
                     return result;
                 }
 
@@ -87,6 +102,14 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     return result;
                 }
 
+                bool hasContract = await _context.Contracts.AnyAsync(x => x.ProjectId == current.ID);
+                if (hasContract)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "بعد از ساخت قرارداد امکان ویرایش پروژه وجود ندارد";
+                    return result;
+                }
+
                 current.OrganizationId = project.OrganizationId;
                 current.Title = project.Title;
                 current.Description = project.Description;
@@ -119,9 +142,10 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 var query = _context.Projects
                     .AsNoTracking()
                     .Include(x => x.Category)
+                    .Include(x => x.Skills)
+                        .ThenInclude(x => x.Tag)
                     .Include(x => x.Organization)
-                    .Include(x => x.Proposals)
-                    .Where(x => x.EmployerUserId == employerUserId);
+                    .Where(x => x.EmployerUserId == employerUserId && x.DeleteDate == null);
 
                 results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -129,6 +153,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .OrderByDescending(x => x.CreateDate)
                     .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
+                await PopulateProposalCountsAsync(results.Results);
             }
             catch (Exception ex)
             {
@@ -146,6 +171,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 var query = _context.Proposals
                     .AsNoTracking()
                     .Include(x => x.Project)
+                        .ThenInclude(x => x.Contract)
                     .Where(x => x.FreelancerUserId == freelancerUserId);
 
                 results.TotalCount = await query.CountAsync();
@@ -168,6 +194,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             long categoryId = 0,
             decimal? minBudget = null,
             decimal? maxBudget = null,
+            long skillTagId = 0,
+            ProjectType? projectType = null,
+            LocationMode? locationMode = null,
+            DateTime? deadlineFrom = null,
+            DateTime? deadlineTo = null,
             int pageIndex = 1,
             int pageSize = 20,
             string searchText = "",
@@ -182,12 +213,22 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.Organization)
                     .Include(x => x.Category)
                     .Include(x => x.City)
-                    .Include(x => x.Proposals)
+                    .Include(x => x.Skills)
+                        .ThenInclude(x => x.Tag)
                     .Where(x =>
-                        (status == null || x.Status == status) &&
+                        (status == null
+                            ? (x.Status == ProjectStatus.Published || x.Status == ProjectStatus.Bidding) && x.Contract == null
+                            : x.Status == status) &&
+                        x.IsActive &&
+                        x.DeleteDate == null &&
                         (categoryId <= 0 || x.CategoryId == categoryId) &&
+                        (skillTagId <= 0 || x.Skills.Any(skill => skill.TagId == skillTagId)) &&
                         (minBudget == null || (x.BudgetMax ?? x.BudgetMin ?? 0) >= minBudget) &&
                         (maxBudget == null || (x.BudgetMin ?? x.BudgetMax ?? 0) <= maxBudget) &&
+                        (projectType == null || x.ProjectType == projectType) &&
+                        (locationMode == null || x.LocationMode == locationMode) &&
+                        (deadlineFrom == null || x.DeadlineAt >= deadlineFrom) &&
+                        (deadlineTo == null || x.DeadlineAt <= deadlineTo) &&
                         (string.IsNullOrEmpty(searchText) ||
                          x.Title.Contains(searchText) ||
                          (x.Description != null && x.Description.Contains(searchText))));
@@ -199,6 +240,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .SortBy(sortQuery)
                     .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
+                await PopulateProposalCountsAsync(results.Results);
             }
             catch (Exception ex)
             {
@@ -215,6 +257,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             {
                 result.Result = await _context.Projects
                     .AsNoTracking()
+                    .AsSplitQuery()
                     .Include(x => x.EmployerUser)
                     .Include(x => x.Organization)
                     .Include(x => x.Category)
@@ -226,6 +269,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.Assignment)
                     .Include(x => x.Contract)
                         .ThenInclude(x => x!.Milestones)
+                            .ThenInclude(x => x.Deliverables)
+                                .ThenInclude(x => x.FileUpload)
+                    .Include(x => x.Contract)
+                        .ThenInclude(x => x!.Timesheets)
+                            .ThenInclude(x => x.User)
                     .SingleOrDefaultAsync(x => x.ID == projectId);
                 result.Status = result.Result != null;
             }
@@ -235,6 +283,27 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
+        }
+
+        private async Task PopulateProposalCountsAsync(ICollection<Project>? projects)
+        {
+            if (projects == null || projects.Count == 0)
+            {
+                return;
+            }
+
+            var projectIds = projects.Select(x => x.ID).ToList();
+            var counts = await _context.Proposals
+                .AsNoTracking()
+                .Where(x => projectIds.Contains(x.ProjectId))
+                .GroupBy(x => x.ProjectId)
+                .Select(group => new { ProjectId = group.Key, Count = group.Count() })
+                .ToDictionaryAsync(x => x.ProjectId, x => x.Count);
+
+            foreach (var project in projects)
+            {
+                project.QueryProposalsCount = counts.GetValueOrDefault(project.ID);
+            }
         }
 
         public async Task<ListResultObject<Proposal>> GetProjectProposalsAsync(long projectId, int pageIndex = 1, int pageSize = 20)
@@ -426,8 +495,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                         new Milestone
                         {
                             Title = "مرحله اصلی پروژه",
+                            Description = "اجرای کامل پروژه طبق پیشنهاد پذیرفته شده و معیارهای توافق شده در قرارداد.",
                             Amount = proposal.ProposedPrice,
+                            StartsAt = DateTime.UtcNow,
                             DueAt = DateTime.UtcNow.AddDays(proposal.ProposedDays),
+                            DurationDays = proposal.ProposedDays,
                             Status = MilestoneStatus.Pending
                         }
                     };
@@ -435,6 +507,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 foreach (var milestone in contractMilestones)
                 {
                     milestone.ContractId = contract.ID;
+                    if (milestone.DurationDays.HasValue && !milestone.DueAt.HasValue)
+                    {
+                        milestone.StartsAt ??= DateTime.UtcNow;
+                        milestone.DueAt = milestone.StartsAt.Value.AddDays(milestone.DurationDays.Value);
+                    }
                     milestone.Status = MilestoneStatus.Pending;
                     milestone.CreateDate = DateTime.UtcNow;
                     milestone.UpdateDate = DateTime.UtcNow;
@@ -442,6 +519,24 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 }
 
                 await _context.Milestones.AddRangeAsync(contractMilestones);
+                await _context.Notifications.AddAsync(new Notification
+                {
+                    UserId = proposal.FreelancerUserId,
+                    Message = $"پیشنهاد شما برای پروژه «{proposal.Project.Title}» پذیرفته شد و قرارداد ساخته شد.",
+                    IsRead = false,
+                    CreateDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
+                    IsActive = true
+                });
+                await _context.Notifications.AddAsync(new Notification
+                {
+                    UserId = employerUserId,
+                    Message = $"قرارداد پروژه «{proposal.Project.Title}» با مجری انتخاب‌شده ساخته شد.",
+                    IsRead = false,
+                    CreateDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
+                    IsActive = true
+                });
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
@@ -472,7 +567,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     return results;
                 }
 
-                var query = _context.Milestones.AsNoTracking().Where(x => x.ContractId == contractId);
+                var query = _context.Milestones
+                    .AsNoTracking()
+                    .Include(x => x.Deliverables)
+                        .ThenInclude(x => x.FileUpload)
+                    .Where(x => x.ContractId == contractId);
                 results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderBy(x => x.DueAt ?? x.CreateDate).ToPaging(pageIndex, pageSize).ToListAsync();
@@ -499,6 +598,11 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 }
 
                 milestone.ContractId = contractId;
+                if (milestone.DurationDays.HasValue && !milestone.DueAt.HasValue)
+                {
+                    milestone.StartsAt ??= DateTime.UtcNow;
+                    milestone.DueAt = milestone.StartsAt.Value.AddDays(milestone.DurationDays.Value);
+                }
                 milestone.Status = MilestoneStatus.Pending;
                 milestone.CreateDate = DateTime.UtcNow;
                 milestone.UpdateDate = DateTime.UtcNow;

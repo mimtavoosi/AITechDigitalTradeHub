@@ -26,6 +26,19 @@ namespace AITechDigitalTradeHub.Data.Domain
         /// <summary>متن پیشنهاد.</summary>
         public string? CoverLetter { get; set; }
 
+        /// <summary>مبلغ پیشنهادی کارفرما برای مذاکره.</summary>
+        public decimal? CounterPrice { get; set; }
+
+        /// <summary>مدت پیشنهادی کارفرما برای مذاکره.</summary>
+        public int? CounterDays { get; set; }
+
+        /// <summary>توضیح کارفرما برای تغییر قیمت/زمان.</summary>
+        public string? CounterMessage { get; set; }
+
+        public DateTime? CounterOfferAt { get; set; }
+        public DateTime? CounterAcceptedAt { get; set; }
+        public DateTime? CounterRejectedAt { get; set; }
+
         public ProposalStatus Status { get; set; } = ProposalStatus.Sent;
 
         public Project Project { get; set; } = default!;
