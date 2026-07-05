@@ -53,7 +53,7 @@ namespace AITechDigitalTradeHub.Data.Tools
 
         public static IQueryable<T> SortBy<T>(this IQueryable<T> query, string sorting)
         {
-            if (string.IsNullOrEmpty(sorting))
+            if (string.IsNullOrWhiteSpace(sorting))
             {
                 return query;
             }
@@ -65,12 +65,31 @@ namespace AITechDigitalTradeHub.Data.Tools
             var sortingString = new StringBuilder();
             foreach (var sortOption in sortingOptions)
             {
-                var sortParts = sortOption.Trim().Split('-');
+                var trimmed = sortOption.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                {
+                    continue;
+                }
+
+                var sortParts = trimmed.Contains('-')
+                    ? trimmed.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    : trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                 if (sortParts.Length == 2)
                 {
                     var field = sortParts[0];
                     var direction = sortParts[1].ToLower();
+                    if (string.IsNullOrWhiteSpace(field) || direction is not ("asc" or "desc" or "ascending" or "descending"))
+                    {
+                        continue;
+                    }
+
+                    var property = typeof(T).GetProperties()
+                        .FirstOrDefault(x => string.Equals(x.Name, field, StringComparison.OrdinalIgnoreCase));
+                    if (property == null)
+                    {
+                        continue;
+                    }
 
                     // اضافه کردن به رشته دستور مرتب سازی
                     if (sortingString.Length > 0)
@@ -78,8 +97,13 @@ namespace AITechDigitalTradeHub.Data.Tools
                         sortingString.Append(", ");
                     }
 
-                    sortingString.Append($"{field} {direction}");
+                    sortingString.Append($"{property.Name} {direction}");
                 }
+            }
+
+            if (sortingString.Length == 0)
+            {
+                return query;
             }
 
             // اعمال مرتب سازی به صورت پویا با استفاده از System.Linq.Dynamic.Core

@@ -79,9 +79,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 var query = _context.Listings
                     .AsNoTracking()
                     .Include(x => x.Category)
-                    .Include(x => x.ProductDetails)
-                    .Include(x => x.ServiceDetails)
-                    .Include(x => x.EquipmentRentalDetails)
+                    .Include(x => x.OwnerUser)
                     .Where(x => x.OwnerUserId == ownerUserId);
 
                 results.TotalCount = await query.CountAsync();
@@ -133,9 +131,6 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .AsNoTracking()
                     .Include(x => x.Category)
                     .Include(x => x.OwnerUser)
-                    .Include(x => x.ProductDetails)
-                    .Include(x => x.ServiceDetails)
-                    .Include(x => x.EquipmentRentalDetails)
                     .Where(x =>
                         (listingType == null || x.ListingType == listingType) &&
                         (status == null || x.Status == status) &&

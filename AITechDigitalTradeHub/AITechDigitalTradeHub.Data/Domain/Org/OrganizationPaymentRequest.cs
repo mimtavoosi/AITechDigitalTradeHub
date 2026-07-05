@@ -20,7 +20,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         Expired = 5
     }
 
-    /// <summary>درخواست کارمند برای خرید خدمت/دوره/رزرو با پرداخت از کیف پول شرکت.</summary>
+    /// <summary>درخواست عضو برای خرید خدمت/دوره/رزرو با پرداخت از کیف پول سازمان.</summary>
     public class OrganizationPaymentRequest : BaseEntity
     {
         public long OrganizationId { get; set; }

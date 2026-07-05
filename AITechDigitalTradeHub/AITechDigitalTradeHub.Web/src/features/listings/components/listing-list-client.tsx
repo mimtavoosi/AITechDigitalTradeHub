@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, PackageSearch } from "lucide-react";
 import { getListings } from "@/features/listings/api/listings-api";
+import { queryKeys } from "@/lib/query-keys";
 
 export function ListingListClient() {
-  const listingsQuery = useQuery({ queryKey: ["listings", "public"], queryFn: getListings });
+  const listingsQuery = useQuery({ queryKey: queryKeys.listings.publicList(), queryFn: getListings });
   const listings = listingsQuery.data?.results ?? [];
 
   if (listingsQuery.isLoading) {

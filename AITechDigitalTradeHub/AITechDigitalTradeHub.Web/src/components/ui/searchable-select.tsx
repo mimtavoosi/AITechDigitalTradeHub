@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,7 @@ export function SearchableSelect<TValue extends string | number = string>({
 }: SearchableSelectProps<TValue>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
   const selected = options.find((item) => item.value === value);
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -43,8 +44,33 @@ export function SearchableSelect<TValue extends string | number = string>({
     return options.filter((item) => `${item.label} ${item.description ?? ""}`.toLowerCase().includes(normalized));
   }, [options, query]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
   return (
-    <div className={cn("relative grid gap-1.5 text-sm", className)}>
+    <div ref={rootRef} className={cn("relative grid gap-1.5 text-sm", className)}>
       {label ? <div className="font-bold text-foreground">{label}</div> : null}
       <button
         type="button"
@@ -131,12 +157,38 @@ export function MultiSelect<TValue extends string | number = string>({
 }: MultiSelectProps<TValue>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
   const selected = options.filter((item) => value.includes(item.value));
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return options;
     return options.filter((item) => `${item.label} ${item.description ?? ""}`.toLowerCase().includes(normalized));
   }, [options, query]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   function toggle(optionValue: TValue) {
     if (value.includes(optionValue)) {
@@ -147,7 +199,7 @@ export function MultiSelect<TValue extends string | number = string>({
   }
 
   return (
-    <div className={cn("relative grid gap-1.5 text-sm", className)}>
+    <div ref={rootRef} className={cn("relative grid gap-1.5 text-sm", className)}>
       {label ? <div className="font-bold text-foreground">{label}</div> : null}
       <button
         type="button"

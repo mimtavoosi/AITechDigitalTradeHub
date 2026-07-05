@@ -20,7 +20,7 @@ export type AuthResult = {
   errorMessage?: string;
   accessToken?: string;
   accessTokenExpiresAt?: string;
-  refreshToken?: string;
+  refreshToken?: string | null;
   requiresMobileVerification?: boolean;
   mobileNumber?: string | null;
   user?: AuthUser;

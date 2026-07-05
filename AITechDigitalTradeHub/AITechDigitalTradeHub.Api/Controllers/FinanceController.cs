@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AITechDigitalTradeHub.Api.Infrastructure;
+using AITechDigitalTradeHub.Api.Services;
 using AITechDigitalTradeHub.Data.DataLayer;
 using AITechDigitalTradeHub.Data.DataLayer.Repositories;
 using AITechDigitalTradeHub.Data.Domain;
@@ -16,11 +17,13 @@ namespace AITechDigitalTradeHub.Api.Controllers
     {
         private readonly IFinanceRep _financeRep;
         private readonly TheAppContext _context;
+        private readonly IUserNotificationService _userNotificationService;
 
-        public FinanceController(IFinanceRep financeRep, TheAppContext context)
+        public FinanceController(IFinanceRep financeRep, TheAppContext context, IUserNotificationService userNotificationService)
         {
             _financeRep = financeRep;
             _context = context;
+            _userNotificationService = userNotificationService;
         }
 
         [HttpGet("wallets/{id:long}")]
@@ -126,6 +129,20 @@ namespace AITechDigitalTradeHub.Api.Controllers
             }
 
             var result = await _financeRep.DepositAsync(id, request.Amount, request.GatewayRef, request.ReferenceType, request.ReferenceId);
+            if (result.Status)
+            {
+                var wallet = await _context.Wallets.AsNoTracking().SingleOrDefaultAsync(x => x.ID == id);
+                if (wallet?.OwnerUserId.HasValue == true)
+                {
+                    await _userNotificationService.AddInAppAsync(
+                        wallet.OwnerUserId.Value,
+                        $"واریز مبلغ {request.Amount:N0} {wallet.Currency} به کیف پول شما ثبت شد.",
+                        NotificationCategory.Financial,
+                        GetCurrentUserId());
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
@@ -154,7 +171,18 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 return Forbid();
             }
 
+            var escrow = await _financeRep.GetEscrowByIdAsync(id);
             var result = await _financeRep.ReleaseEscrowAsync(id);
+            if (result.Status && escrow.Result?.PayeeWallet?.OwnerUserId.HasValue == true)
+            {
+                await _userNotificationService.AddInAppAsync(
+                    escrow.Result.PayeeWallet.OwnerUserId.Value,
+                    $"مبلغ Escrow به ارزش {escrow.Result.Amount:N0} {escrow.Result.PayeeWallet.Currency} آزاد شد.",
+                    NotificationCategory.Financial,
+                    GetCurrentUserId());
+                await _context.SaveChangesAsync();
+            }
+
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
@@ -166,7 +194,18 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 return Forbid();
             }
 
+            var escrow = await _financeRep.GetEscrowByIdAsync(id);
             var result = await _financeRep.RefundEscrowAsync(id);
+            if (result.Status && escrow.Result?.PayerWallet?.OwnerUserId.HasValue == true)
+            {
+                await _userNotificationService.AddInAppAsync(
+                    escrow.Result.PayerWallet.OwnerUserId.Value,
+                    $"مبلغ Escrow به ارزش {escrow.Result.Amount:N0} {escrow.Result.PayerWallet.Currency} به کیف پول شما برگشت داده شد.",
+                    NotificationCategory.Financial,
+                    GetCurrentUserId());
+                await _context.SaveChangesAsync();
+            }
+
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
@@ -258,6 +297,16 @@ namespace AITechDigitalTradeHub.Api.Controllers
                     enrollment.Status = EnrollmentStatus.Active;
                     enrollment.PaidAmount = 0;
                     enrollment.UpdateDate = DateTime.UtcNow;
+                    await _userNotificationService.AddInAppAsync(
+                        studentUserId,
+                        $"ثبت‌نام شما در دوره «{course.Title}» فعال شد.",
+                        NotificationCategory.Education,
+                        studentUserId);
+                    await _userNotificationService.AddInAppAsync(
+                        course.InstructorUserId,
+                        $"یک دانشجو در دوره رایگان «{course.Title}» ثبت‌نام کرد.",
+                        NotificationCategory.Education,
+                        studentUserId);
                     await _context.SaveChangesAsync();
                     await tx.CommitAsync();
                     result.ID = enrollment.ID;
@@ -281,6 +330,16 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 enrollment.PaidAmount = course.PriceAmount;
                 enrollment.Status = EnrollmentStatus.Active;
                 enrollment.UpdateDate = DateTime.UtcNow;
+                await _userNotificationService.AddInAppAsync(
+                    studentUserId,
+                    $"پرداخت و ثبت‌نام شما در دوره «{course.Title}» تکمیل شد.",
+                    NotificationCategory.Education,
+                    studentUserId);
+                await _userNotificationService.AddInAppAsync(
+                    course.InstructorUserId,
+                    $"خرید جدید برای دوره «{course.Title}» ثبت شد.",
+                    NotificationCategory.Education,
+                    studentUserId);
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
                 result.ID = enrollment.ID;
@@ -327,6 +386,16 @@ namespace AITechDigitalTradeHub.Api.Controllers
                     booking.Status = TeacherBookingStatus.Confirmed;
                     booking.ConfirmedAt = DateTime.UtcNow;
                     booking.UpdateDate = DateTime.UtcNow;
+                    await _userNotificationService.AddInAppAsync(
+                        studentUserId,
+                        "رزرو جلسه آموزشی شما تایید شد.",
+                        NotificationCategory.Education,
+                        studentUserId);
+                    await _userNotificationService.AddInAppAsync(
+                        booking.InstructorUserId,
+                        "یک رزرو جلسه آموزشی جدید تایید شد.",
+                        NotificationCategory.Education,
+                        studentUserId);
                     await _context.SaveChangesAsync();
                     await tx.CommitAsync();
                     result.ID = booking.ID;
@@ -350,6 +419,16 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 booking.Status = TeacherBookingStatus.Confirmed;
                 booking.ConfirmedAt = DateTime.UtcNow;
                 booking.UpdateDate = DateTime.UtcNow;
+                await _userNotificationService.AddInAppAsync(
+                    studentUserId,
+                    "پرداخت و رزرو جلسه آموزشی شما تکمیل شد.",
+                    NotificationCategory.Education,
+                    studentUserId);
+                await _userNotificationService.AddInAppAsync(
+                    booking.InstructorUserId,
+                    "پرداخت یک رزرو جلسه آموزشی تکمیل شد.",
+                    NotificationCategory.Education,
+                    studentUserId);
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
                 result.ID = booking.ID;
@@ -395,9 +474,11 @@ namespace AITechDigitalTradeHub.Api.Controllers
             }
 
             var payee = await GetOrCreateUserWalletAsync(payeeUserId, payer.Currency);
+            var fee = await _financeRep.CalculateFeeForReferenceTypeAsync(referenceType, amount);
+
             payer.Balance -= amount;
             payer.UpdateDate = DateTime.UtcNow;
-            payee.Balance += amount;
+            payee.Balance += amount - fee;
             payee.UpdateDate = DateTime.UtcNow;
 
             var payerTx = new Transaction
@@ -427,6 +508,23 @@ namespace AITechDigitalTradeHub.Api.Controllers
             };
 
             await _context.Transactions.AddRangeAsync(payerTx, payeeTx);
+
+            if (fee > 0)
+            {
+                await _context.Transactions.AddAsync(new Transaction
+                {
+                    WalletId = payee.ID,
+                    TxType = TransactionType.Fee,
+                    Amount = -fee,
+                    ReferenceType = referenceType,
+                    ReferenceId = referenceId,
+                    Status = TransactionStatus.Success,
+                    CreateDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
+                    IsActive = true
+                });
+            }
+
             await _context.SaveChangesAsync();
             result.ID = payerTx.ID;
             return result;

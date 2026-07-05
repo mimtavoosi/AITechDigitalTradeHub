@@ -19,5 +19,8 @@ namespace AITechDigitalTradeHub.Api.Infrastructure
         public const string EducationInstructorManage = "education.instructors.manage";
         public const string EducationBookingCreate = "education.bookings.create";
         public const string EducationBookingManage = "education.bookings.manage";
+        public const string EducationAdminManage = "education.admin.manage";
+        public const string OrganizationManage = "organizations.manage";
+        public const string OrganizationAdminManage = "organizations.admin.manage";
     }
 }

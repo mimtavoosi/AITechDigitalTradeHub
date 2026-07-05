@@ -53,13 +53,11 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Auth
 
     public class RefreshTokenRequest
     {
-        [Required]
         public string RefreshToken { get; set; } = string.Empty;
     }
 
     public class LogoutRequest
     {
-        [Required]
         public string RefreshToken { get; set; } = string.Empty;
     }
 

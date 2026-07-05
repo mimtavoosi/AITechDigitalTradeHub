@@ -11,7 +11,10 @@ namespace AITechDigitalTradeHub.Data.Domain
         MilestoneUpdated = 5,
         DeliverableSubmitted = 6,
         DecisionRecorded = 7,
-        StatusChanged = 8
+        StatusChanged = 8,
+        DocumentAdded = 9,
+        MessageSent = 10,
+        DisputeOpened = 11
     }
 
     /// <summary>تاریخچه تصمیمات و تغییرات پروژه.</summary>

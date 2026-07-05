@@ -15,5 +15,12 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Repositories
         Task<BitResultObject> ReleaseEscrowAsync(long escrowId);
         Task<BitResultObject> RefundEscrowAsync(long escrowId);
         Task<BitResultObject> RequestPayoutAsync(PayoutRequest payoutRequest);
+
+        Task<ListResultObject<PlatformFeeRule>> GetFeeRulesAsync();
+        Task<BitResultObject> CreateFeeRuleAsync(PlatformFeeRule rule);
+        Task<BitResultObject> UpdateFeeRuleAsync(PlatformFeeRule rule);
+        Task<BitResultObject> SetFeeRuleActiveAsync(long id, bool isActive);
+        Task<decimal> CalculateFeeAsync(PlatformFeeContextType contextType, decimal amount);
+        Task<decimal> CalculateFeeForReferenceTypeAsync(string referenceType, decimal amount);
     }
 }

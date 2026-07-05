@@ -134,9 +134,24 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
 
         private async Task<BitResultObject> ValidateReviewContextAsync(Review review)
         {
+            if (review.ContextType == ReviewContextType.Contract)
+            {
+                return await ValidateContractReviewContextAsync(review);
+            }
+
+            if (review.ContextType == ReviewContextType.Course)
+            {
+                return await ValidateCourseReviewContextAsync(review);
+            }
+
+            if (review.ContextType == ReviewContextType.TeacherBooking)
+            {
+                return await ValidateTeacherBookingReviewContextAsync(review);
+            }
+
             if (review.ContextType != ReviewContextType.Order)
             {
-                return new BitResultObject { Status = false, ErrorMessage = "Only order reviews are supported at this stage." };
+                return new BitResultObject { Status = false, ErrorMessage = "Only order, contract, course and teacher booking reviews are supported." };
             }
 
             var order = await _context.Orders
@@ -162,6 +177,84 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             if (!targetIsValid || review.TargetId == review.ReviewerUserId && review.TargetType == ReviewTargetType.User)
             {
                 return new BitResultObject { Status = false, ErrorMessage = "Invalid review target for this order." };
+            }
+
+            return new BitResultObject();
+        }
+
+        private async Task<BitResultObject> ValidateContractReviewContextAsync(Review review)
+        {
+            var contract = await _context.Contracts
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == review.ContextId && x.DeleteDate == null);
+
+            if (contract == null || contract.Status != ContractStatus.Completed)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "The contract must be completed before review." };
+            }
+
+            var isEmployer = contract.EmployerUserId == review.ReviewerUserId;
+            var isContractor = contract.ContractorUserId == review.ReviewerUserId;
+            if (!isEmployer && !isContractor)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "Only contract participants can submit a review." };
+            }
+
+            var validUserTarget =
+                review.TargetType == ReviewTargetType.User &&
+                (review.TargetId == contract.EmployerUserId || review.TargetId == contract.ContractorUserId);
+
+            var validContractTarget = review.TargetType == ReviewTargetType.Contract && review.TargetId == contract.ID;
+            var validOrganizationTarget = review.TargetType == ReviewTargetType.Organization && review.TargetId == contract.ContractorOrganizationId;
+
+            if ((!validUserTarget && !validContractTarget && !validOrganizationTarget) ||
+                review.TargetType == ReviewTargetType.User && review.TargetId == review.ReviewerUserId)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "Invalid review target for this contract." };
+            }
+
+            return new BitResultObject();
+        }
+
+        private async Task<BitResultObject> ValidateCourseReviewContextAsync(Review review)
+        {
+            var enrollment = await _context.CourseEnrollments
+                .AsNoTracking()
+                .Include(x => x.Course)
+                .SingleOrDefaultAsync(x => x.ID == review.ContextId && x.DeleteDate == null);
+
+            if (enrollment == null || enrollment.StudentUserId != review.ReviewerUserId || enrollment.Status != EnrollmentStatus.Completed)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "The course must be completed before review." };
+            }
+
+            var targetIsValid =
+                review.TargetType == ReviewTargetType.Course && review.TargetId == enrollment.CourseId ||
+                review.TargetType == ReviewTargetType.User && review.TargetId == enrollment.Course.InstructorUserId;
+
+            if (!targetIsValid || review.TargetType == ReviewTargetType.User && review.TargetId == review.ReviewerUserId)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "Invalid review target for this course." };
+            }
+
+            return new BitResultObject();
+        }
+
+        private async Task<BitResultObject> ValidateTeacherBookingReviewContextAsync(Review review)
+        {
+            var booking = await _context.TeacherBookings
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == review.ContextId && x.DeleteDate == null);
+
+            if (booking == null || booking.StudentUserId != review.ReviewerUserId || booking.Status != TeacherBookingStatus.Completed)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "The teacher booking must be completed before review." };
+            }
+
+            var targetIsValid = review.TargetType == ReviewTargetType.User && review.TargetId == booking.InstructorUserId;
+            if (!targetIsValid)
+            {
+                return new BitResultObject { Status = false, ErrorMessage = "Invalid review target for this booking." };
             }
 
             return new BitResultObject();

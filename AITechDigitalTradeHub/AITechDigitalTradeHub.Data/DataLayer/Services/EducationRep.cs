@@ -63,6 +63,16 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 current.DurationMinutes = course.DurationMinutes;
                 current.StartsAt = course.StartsAt;
                 current.CoverFileId = course.CoverFileId;
+                current.LearningGoal = course.LearningGoal;
+                current.TargetRole = course.TargetRole;
+                current.EstimatedWeeks = course.EstimatedWeeks;
+                current.WeeklyHoursMin = course.WeeklyHoursMin;
+                current.WeeklyHoursMax = course.WeeklyHoursMax;
+                current.DifficultyScore = course.DifficultyScore;
+                current.ProjectBased = course.ProjectBased;
+                current.RequiresMentor = course.RequiresMentor;
+                current.LearningOutcomes = course.LearningOutcomes;
+                current.PrerequisitesSummary = course.PrerequisitesSummary;
                 current.UpdateDate = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -95,6 +105,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.Category)
                     .Include(x => x.Lessons)
                     .Include(x => x.Enrollments)
+                    .Include(x => x.SkillTags)
+                    .Include(x => x.PrerequisiteTags)
+                    .Include(x => x.TargetRoleTags)
                     .Where(x =>
                         (status == null || x.Status == status) &&
                         (level == null || x.Level == level) &&
@@ -132,6 +145,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.Category)
                     .Include(x => x.Lessons)
                     .Include(x => x.Enrollments)
+                    .Include(x => x.SkillTags)
+                    .Include(x => x.PrerequisiteTags)
+                    .Include(x => x.TargetRoleTags)
                     .SingleOrDefaultAsync(x => x.ID == courseId);
                 result.Status = result.Result != null;
             }
@@ -153,6 +169,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.Category)
                     .Include(x => x.Lessons)
                     .Include(x => x.Enrollments)
+                    .Include(x => x.SkillTags)
+                    .Include(x => x.PrerequisiteTags)
+                    .Include(x => x.TargetRoleTags)
                     .Where(x => x.InstructorUserId == instructorUserId);
 
                 results.TotalCount = await query.CountAsync();
@@ -181,6 +200,50 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+        }
+
+        public async Task<ListResultObject<TeacherBooking>> GetStudentBookingsAsync(long studentUserId, int pageIndex = 1, int pageSize = 20)
+        {
+            ListResultObject<TeacherBooking> results = new ListResultObject<TeacherBooking>();
+            try
+            {
+                var query = _context.TeacherBookings
+                    .AsNoTracking()
+                    .Include(x => x.InstructorUser)
+                    .Where(x => x.StudentUserId == studentUserId);
+
+                results.TotalCount = await query.CountAsync();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.StartsAt).ToPaging(pageIndex, pageSize).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+        }
+
+        public async Task<ListResultObject<TeacherBooking>> GetInstructorBookingsAsync(long instructorUserId, int pageIndex = 1, int pageSize = 20)
+        {
+            ListResultObject<TeacherBooking> results = new ListResultObject<TeacherBooking>();
+            try
+            {
+                var query = _context.TeacherBookings
+                    .AsNoTracking()
+                    .Include(x => x.StudentUser)
+                    .Where(x => x.InstructorUserId == instructorUserId);
+
+                results.TotalCount = await query.CountAsync();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.StartsAt).ToPaging(pageIndex, pageSize).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -287,6 +350,43 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 };
 
                 await _context.CourseEnrollments.AddAsync(enrollment);
+                await _context.SaveChangesAsync();
+                result.ID = enrollment.ID;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+        public async Task<BitResultObject> UpdateEnrollmentProgressAsync(long enrollmentId, long studentUserId, byte progressPercent)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var enrollment = await _context.CourseEnrollments.SingleOrDefaultAsync(x => x.ID == enrollmentId && x.StudentUserId == studentUserId);
+                if (enrollment == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "ثبت‌نام دوره پیدا نشد";
+                    return result;
+                }
+
+                enrollment.ProgressPercent = progressPercent > 100 ? (byte)100 : progressPercent;
+                enrollment.UpdateDate = DateTime.UtcNow;
+                if (enrollment.ProgressPercent >= 100)
+                {
+                    enrollment.Status = EnrollmentStatus.Completed;
+                    enrollment.CompletedAt ??= DateTime.UtcNow;
+                }
+                else if (enrollment.Status == EnrollmentStatus.Completed)
+                {
+                    enrollment.Status = EnrollmentStatus.Active;
+                    enrollment.CompletedAt = null;
+                }
+
                 await _context.SaveChangesAsync();
                 result.ID = enrollment.ID;
             }

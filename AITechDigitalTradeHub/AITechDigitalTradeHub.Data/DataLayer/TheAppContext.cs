@@ -40,6 +40,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<LoginMethod> LoginMethods { get; set; }
         public DbSet<Log> Logs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<UserNotificationPreference> UserNotificationPreferences { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Setting> Settings { get; set; }
@@ -47,7 +48,9 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<TicketAttachment> TicketAttachments { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserPanelPreference> UserPanelPreferences { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<UserSkill> UserSkills { get; set; }
         public DbSet<Token> Tokens { get; set; }
         public DbSet<SMSMessage> SMSMessages { get; set; }
 
@@ -151,8 +154,15 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         public DbSet<Course> Courses { get; set; }
         public DbSet<CourseLesson> CourseLessons { get; set; }
         public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
+        public DbSet<CourseLessonProgress> CourseLessonProgresses { get; set; }
+        public DbSet<CourseCertificate> CourseCertificates { get; set; }
         public DbSet<TeacherAvailabilitySlot> TeacherAvailabilitySlots { get; set; }
         public DbSet<TeacherBooking> TeacherBookings { get; set; }
+        public DbSet<CourseSkillTag> CourseSkillTags { get; set; }
+        public DbSet<CoursePrerequisiteTag> CoursePrerequisiteTags { get; set; }
+        public DbSet<CourseTargetRoleTag> CourseTargetRoleTags { get; set; }
+        public DbSet<EducationQuestionnaireQuestion> EducationQuestionnaireQuestions { get; set; }
+        public DbSet<EducationQuestionnaireOption> EducationQuestionnaireOptions { get; set; }
 
         // -----------------------------
         // Investment
@@ -208,6 +218,18 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<UserPanelPreference>().HasIndex(x => new { x.UserId, x.PanelKey }).IsUnique();
+            modelBuilder.Entity<UserPanelPreference>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<UserNotificationPreference>().HasIndex(x => x.UserId).IsUnique();
+            modelBuilder.Entity<UserNotificationPreference>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
 
@@ -252,14 +274,22 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasForeignKey(x => x.ApprovedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<UserSkill>()
+                .HasKey(x => new { x.UserId, x.TagId });
+
+            modelBuilder.Entity<UserSkill>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserSkill>()
+                .HasOne(x => x.Tag)
+                .WithMany()
+                .HasForeignKey(x => x.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
+
           
-
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Role)
-                .WithMany(r => r.Users)
-                .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
-
 
             modelBuilder.Entity<Address>()
              .HasOne(x => x.City)
@@ -274,12 +304,6 @@ namespace AITechDigitalTradeHub.Data.DataLayer
    .WithMany(x => x.PaymentHistories)
    .HasForeignKey(x => x.UserId)
    .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<User>()
-   .HasOne(x => x.Role)
-   .WithMany(x => x.Users)
-   .HasForeignKey(x => x.RoleId)
-   .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Setting>()
    .HasOne(x => x.Parent)
@@ -599,7 +623,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             modelBuilder.Entity<Project>()
                 .HasOne(x => x.Organization)
-                .WithMany()
+                .WithMany(x => x.Projects)
                 .HasForeignKey(x => x.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -1108,6 +1132,91 @@ namespace AITechDigitalTradeHub.Data.DataLayer
                 .HasIndex(x => x.Slug)
                 .IsUnique();
 
+            modelBuilder.Entity<Course>()
+                .HasIndex(x => new { x.LearningGoal, x.TargetRole, x.Level, x.DeliveryMode });
+
+            modelBuilder.Entity<Course>()
+                .HasIndex(x => new { x.WeeklyHoursMin, x.WeeklyHoursMax });
+
+            modelBuilder.Entity<CourseSkillTag>()
+                .HasKey(x => new { x.CourseId, x.TagId });
+
+            modelBuilder.Entity<CourseSkillTag>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.SkillTags)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseSkillTag>()
+                .HasOne(x => x.Tag)
+                .WithMany()
+                .HasForeignKey(x => x.TagId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseSkillTag>()
+                .HasIndex(x => x.TagId);
+
+            modelBuilder.Entity<CoursePrerequisiteTag>()
+                .HasKey(x => new { x.CourseId, x.TagId });
+
+            modelBuilder.Entity<CoursePrerequisiteTag>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.PrerequisiteTags)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CoursePrerequisiteTag>()
+                .HasOne(x => x.Tag)
+                .WithMany()
+                .HasForeignKey(x => x.TagId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CoursePrerequisiteTag>()
+                .HasIndex(x => x.TagId);
+
+            modelBuilder.Entity<CourseTargetRoleTag>()
+                .HasKey(x => new { x.CourseId, x.TagId });
+
+            modelBuilder.Entity<CourseTargetRoleTag>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.TargetRoleTags)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseTargetRoleTag>()
+                .HasOne(x => x.Tag)
+                .WithMany()
+                .HasForeignKey(x => x.TagId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseTargetRoleTag>()
+                .HasIndex(x => x.TagId);
+
+            modelBuilder.Entity<EducationQuestionnaireQuestion>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<EducationQuestionnaireQuestion>()
+                .HasIndex(x => x.SortOrder);
+
+            modelBuilder.Entity<EducationQuestionnaireOption>()
+                .HasOne(x => x.Question)
+                .WithMany(x => x.Options)
+                .HasForeignKey(x => x.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EducationQuestionnaireOption>()
+                .HasOne(x => x.SkillTag)
+                .WithMany()
+                .HasForeignKey(x => x.SkillTagId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EducationQuestionnaireOption>()
+                .HasIndex(x => new { x.QuestionId, x.SortOrder });
+
+            modelBuilder.Entity<EducationQuestionnaireOption>()
+                .HasIndex(x => x.SkillTagId);
+
             modelBuilder.Entity<CourseLesson>()
                 .HasOne(x => x.Course)
                 .WithMany(x => x.Lessons)
@@ -1143,6 +1252,63 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             modelBuilder.Entity<CourseEnrollment>()
                 .HasIndex(x => new { x.CourseId, x.StudentUserId })
+                .IsUnique();
+
+            modelBuilder.Entity<CourseLessonProgress>()
+                .HasOne(x => x.Enrollment)
+                .WithMany()
+                .HasForeignKey(x => x.EnrollmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseLessonProgress>()
+                .HasOne(x => x.CourseLesson)
+                .WithMany()
+                .HasForeignKey(x => x.CourseLessonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseLessonProgress>()
+                .HasOne(x => x.StudentUser)
+                .WithMany()
+                .HasForeignKey(x => x.StudentUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseLessonProgress>()
+                .HasIndex(x => new { x.EnrollmentId, x.CourseLessonId })
+                .IsUnique();
+
+            modelBuilder.Entity<CourseLessonProgress>()
+                .HasIndex(x => new { x.StudentUserId, x.Status });
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasOne(x => x.Enrollment)
+                .WithMany()
+                .HasForeignKey(x => x.EnrollmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasOne(x => x.StudentUser)
+                .WithMany()
+                .HasForeignKey(x => x.StudentUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasOne(x => x.InstructorUser)
+                .WithMany()
+                .HasForeignKey(x => x.InstructorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasIndex(x => x.EnrollmentId)
+                .IsUnique();
+
+            modelBuilder.Entity<CourseCertificate>()
+                .HasIndex(x => x.CertificateNumber)
                 .IsUnique();
 
             modelBuilder.Entity<TeacherAvailabilitySlot>()
@@ -1455,6 +1621,22 @@ namespace AITechDigitalTradeHub.Data.DataLayer
 
             modelBuilder.Entity<InvestmentOpportunity>()
                 .HasIndex(x => new { x.Status, x.Stage, x.OpenedAt });
+
+            // Read-path indexes: aligned with the filters and ordering used by
+            // public lists, dashboards, timelines and wallet history.
+            modelBuilder.Entity<Project>().HasIndex(x => new { x.Status, x.IsActive, x.DeleteDate, x.PublishedAt });
+            modelBuilder.Entity<Project>().HasIndex(x => new { x.EmployerUserId, x.DeleteDate, x.CreateDate });
+            modelBuilder.Entity<Project>().HasIndex(x => new { x.OrganizationId, x.DeleteDate, x.CreateDate });
+            modelBuilder.Entity<ProjectActivityLog>().HasIndex(x => new { x.ProjectId, x.CreateDate });
+            modelBuilder.Entity<Listing>().HasIndex(x => new { x.Status, x.ListingType, x.PublishedAt });
+            modelBuilder.Entity<Listing>().HasIndex(x => new { x.OwnerUserId, x.CreateDate });
+            modelBuilder.Entity<Transaction>().HasIndex(x => new { x.WalletId, x.CreateDate });
+            modelBuilder.Entity<Notification>().HasIndex(x => new { x.UserId, x.DeleteDate, x.CreateDate });
+            modelBuilder.Entity<Notification>().HasIndex(x => new { x.UserId, x.IsRead, x.DeleteDate });
+            modelBuilder.Entity<Message>().HasIndex(x => new { x.ConversationId, x.CreateDate });
+            modelBuilder.Entity<Course>().HasIndex(x => new { x.Status, x.PublishedAt });
+            modelBuilder.Entity<Course>().HasIndex(x => new { x.InstructorUserId, x.CreateDate });
+            modelBuilder.Entity<CourseEnrollment>().HasIndex(x => new { x.StudentUserId, x.CreateDate });
 
             ApplyDefaultDecimalPrecision(modelBuilder);
         }

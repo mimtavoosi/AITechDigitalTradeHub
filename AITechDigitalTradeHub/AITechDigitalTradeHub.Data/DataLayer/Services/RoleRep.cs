@@ -103,7 +103,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                      .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                    .Include(x => x.Users)
+                    .Include(x => x.UserRoles)
+                        .ThenInclude(x => x.User)
                     .Include(x => x.PermissionRoles)
                     .ToListAsync();
             }
@@ -122,7 +123,8 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
             {
                 result.Result = await _context.Roles
                     .AsNoTracking()
-                    .Include(x => x.Users)
+                    .Include(x => x.UserRoles)
+                        .ThenInclude(x => x.User)
                     .Include(x => x.PermissionRoles)
                     .SingleOrDefaultAsync(x => x.ID == roleId);
             }

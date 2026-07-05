@@ -3,6 +3,7 @@ using AITechDigitalTradeHub.Data.DataLayer.Repositories;
 using AITechDigitalTradeHub.Data.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace AITechDigitalTradeHub.Api.Controllers
 {
@@ -18,6 +19,7 @@ namespace AITechDigitalTradeHub.Api.Controllers
         }
 
         [HttpGet]
+        [OutputCache(PolicyName = "PublicReference")]
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 100,
@@ -29,6 +31,7 @@ namespace AITechDigitalTradeHub.Api.Controllers
         }
 
         [HttpGet("{id:long}")]
+        [OutputCache(PolicyName = "PublicReference")]
         public async Task<IActionResult> GetById(long id)
         {
             var result = await _categoryRep.GetCategoryByIdAsync(id);

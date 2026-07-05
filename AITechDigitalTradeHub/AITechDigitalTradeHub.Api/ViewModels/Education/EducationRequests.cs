@@ -29,6 +29,16 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
         public int? DurationMinutes { get; set; }
         public DateTime? StartsAt { get; set; }
         public long? CoverFileId { get; set; }
+        public EducationLearningGoal? LearningGoal { get; set; }
+        public EducationTargetRole? TargetRole { get; set; }
+        public int? EstimatedWeeks { get; set; }
+        public int? WeeklyHoursMin { get; set; }
+        public int? WeeklyHoursMax { get; set; }
+        public byte? DifficultyScore { get; set; }
+        public bool ProjectBased { get; set; }
+        public bool RequiresMentor { get; set; }
+        public string? LearningOutcomes { get; set; }
+        public string? PrerequisitesSummary { get; set; }
 
         public Course ToEntity(long instructorUserId)
         {
@@ -46,7 +56,17 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
                 Currency = Currency,
                 DurationMinutes = DurationMinutes,
                 StartsAt = StartsAt,
-                CoverFileId = CoverFileId
+                CoverFileId = CoverFileId,
+                LearningGoal = LearningGoal,
+                TargetRole = TargetRole,
+                EstimatedWeeks = EstimatedWeeks,
+                WeeklyHoursMin = WeeklyHoursMin,
+                WeeklyHoursMax = WeeklyHoursMax,
+                DifficultyScore = DifficultyScore,
+                ProjectBased = ProjectBased,
+                RequiresMentor = RequiresMentor,
+                LearningOutcomes = LearningOutcomes,
+                PrerequisitesSummary = PrerequisitesSummary
             };
         }
     }
@@ -124,5 +144,40 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
         public string? Subject { get; set; }
 
         public string? StudentNotes { get; set; }
+    }
+
+    public class UpdateCourseProgressRequest
+    {
+        [Range(0, 100)]
+        public byte ProgressPercent { get; set; }
+    }
+
+    public class UpdateLessonProgressRequest
+    {
+        [Range(0, 100)]
+        public byte ProgressPercent { get; set; }
+    }
+
+    public class EducationQuestionnaireRequest
+    {
+        public string Goal { get; set; } = string.Empty;
+        public EducationLearningGoal? LearningGoal { get; set; }
+        public EducationTargetRole? TargetRole { get; set; }
+        public CourseLevel Level { get; set; } = CourseLevel.Beginner;
+        public int WeeklyHours { get; set; } = 4;
+        public string PreferredMode { get; set; } = "Recorded";
+        public List<long> SkillTagIds { get; set; } = new();
+        public List<long> SelectedOptionIds { get; set; } = new();
+    }
+
+    public class UpdateTeacherBookingStatusRequest
+    {
+        public TeacherBookingStatus Status { get; set; }
+        public string? MeetingUrl { get; set; }
+    }
+
+    public class UpdateCourseStatusRequest
+    {
+        public CourseStatus Status { get; set; }
     }
 }

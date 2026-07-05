@@ -51,7 +51,7 @@ export function WalletDashboardClient() {
 
   return (
     <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-      <section className="rounded-lg border border-border bg-white p-5">
+      <section className="dashboard-card p-5">
         <div className="flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-lg bg-primary/10 text-primary">
             <CreditCard className="size-5" />
@@ -72,10 +72,10 @@ export function WalletDashboardClient() {
             شارژ تستی
           </button>
         </form>
-        {message ? <div className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-sm text-muted">{message}</div> : null}
+        {message ? <div className="mt-4 rounded-md bg-background/80 px-3 py-2 text-sm text-muted">{message}</div> : null}
       </section>
 
-      <section className="rounded-lg border border-border bg-white p-5">
+      <section className="dashboard-card p-5">
         <h2 className="text-lg font-black">تاریخچه تراکنش‌ها</h2>
         {transactionsQuery.isLoading ? <Loader2 className="mt-6 size-5 animate-spin text-muted" /> : null}
         <div className="mt-4 overflow-x-auto">
@@ -91,7 +91,7 @@ export function WalletDashboardClient() {
             </thead>
             <tbody>
               {transactions.map((tx) => (
-                <tr key={String(tx.id ?? tx.iD)} className="bg-slate-50">
+                <tr key={String(tx.id ?? tx.iD)} className="bg-background/78 shadow-panel">
                   <td className="rounded-r-md px-3 py-3">{String(tx.txType)}</td>
                   <td className={`px-3 py-3 font-bold ${tx.amount >= 0 ? "text-primary" : "text-danger"}`}>{tx.amount.toLocaleString("fa-IR")}</td>
                   <td className="px-3 py-3 text-xs text-muted">{tx.referenceType ?? "-"} {tx.referenceId ? `#${tx.referenceId}` : ""}</td>

@@ -1,10 +1,13 @@
 
 using AITechDigitalTradeHub.Api.Infrastructure;
+using AITechDigitalTradeHub.Api.Hubs;
 using AITechDigitalTradeHub.Api.Services;
 using AITechDigitalTradeHub.Data.DataLayer;
 using AITechDigitalTradeHub.Data.DataLayer.Repositories;
 using AITechDigitalTradeHub.Data.DataLayer.Services;
 using AITechWebAPI.Tools;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MTPermissionCenter.AspNetCore;
+using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -22,6 +26,13 @@ namespace AITechDigitalTradeHub.Api
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Host.UseSerilog((context, services, logger) => logger
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .Enrich.WithProperty("Application", context.HostingEnvironment.ApplicationName)
+                .WriteTo.Console());
 
 
             var corsPolicy = builder.Configuration["cors:policy"].ToString();
@@ -64,6 +75,21 @@ namespace AITechDigitalTradeHub.Api
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
                         ClockSkew = TimeSpan.FromMinutes(1)
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"].ToString();
+                            var path = context.HttpContext.Request.Path;
+
+                            if (!string.IsNullOrWhiteSpace(accessToken) && path.StartsWithSegments("/hubs"))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             builder.Services.AddAuthorization();
@@ -74,7 +100,19 @@ namespace AITechDigitalTradeHub.Api
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddMemoryCache();
+            builder.Services.AddOutputCache(options =>
+            {
+                options.AddPolicy("PublicShort", policy => policy
+                    .Expire(TimeSpan.FromSeconds(30))
+                    .SetVaryByQuery("*")
+                    .Tag("public-read"));
+                options.AddPolicy("PublicReference", policy => policy
+                    .Expire(TimeSpan.FromMinutes(10))
+                    .SetVaryByQuery("*")
+                    .Tag("public-reference"));
+            });
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSignalR();
             if (cookiesecurity == "default")
             {
                 builder.Services.AddSession();
@@ -94,14 +132,14 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddCors(options =>
             {
 
-                if (corsPolicy.ToLower().Contains("allowall"))
+                if (corsPolicy.ToLower().Contains("allowall") && allowedOrigins.Length == 0)
                 {
                     options.AddPolicy(corsPolicy, builder =>
                     {
                         builder.AllowAnyOrigin()
                                .AllowAnyMethod()
                                .AllowAnyHeader()
-                               .WithExposedHeaders("Set-Cookie");
+                               .WithExposedHeaders("Set-Cookie", CorrelationIdMiddleware.HeaderName);
 
                     });
                 }
@@ -112,7 +150,7 @@ namespace AITechDigitalTradeHub.Api
                            .AllowCredentials()
                            .AllowAnyHeader()
                            .AllowAnyMethod()
-                             .WithExposedHeaders("Set-Cookie"));
+                             .WithExposedHeaders("Set-Cookie", CorrelationIdMiddleware.HeaderName));
 
                 }
             });
@@ -136,6 +174,7 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.Configure<SmsSenderOptions>(builder.Configuration.GetSection("SmsSender"));
             builder.Services.AddHttpClient<ISmsSender, FarazSmsSender>();
+            builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
             builder.Services.AddScoped<IRoleRep, RoleRep>();
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
             builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
@@ -144,12 +183,15 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddScoped<IListingRep, ListingRep>();
             builder.Services.AddScoped<IOrderRep, OrderRep>();
             builder.Services.AddScoped<IProjectRep, ProjectRep>();
+            builder.Services.AddScoped<IProjectAccessService, ProjectAccessService>();
+            builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
             builder.Services.AddScoped<IEducationRep, EducationRep>();
             builder.Services.AddScoped<IFinanceRep, FinanceRep>();
             builder.Services.AddScoped<ITicketRep, TicketRep>();
             builder.Services.AddScoped<ITicketMessageRep, TicketMessageRep>();
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
             builder.Services.AddScoped<IReviewRep, ReviewRep>();
+            builder.Services.AddScoped<IBadgeRep, BadgeRep>();
 
             var apiVersion = ToolBox.CalculateAppVersionNo();
             var apiTitle = builder.Environment.ApplicationName;
@@ -158,12 +200,15 @@ namespace AITechDigitalTradeHub.Api
             {
                 //options.OutputFormatters.Add()
                 options.ReturnHttpNotAcceptable = true;
+                options.Filters.Add<PaginationActionFilter>();
             })
                  .AddNewtonsoftJson(options =>
                  {
                      options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                  })
                 .AddXmlDataContractSerializerFormatters();
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<Program>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 
@@ -228,7 +273,9 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddAutoMapper(cfg => { /* تنظیمات سراسری اختیاری */ },
                                         typeof(Program).Assembly);
 
-            builder.Services.AddMTPermissionCenter();
+            // The project now uses PermissionAuthorizationHandler for endpoint policies.
+            // The legacy MTPermissionCenter middleware requires IPermissionService and
+            // currently breaks every request before it reaches controllers.
 
             var app = builder.Build();
 
@@ -239,6 +286,17 @@ namespace AITechDigitalTradeHub.Api
 
 
             #region Pipeline
+
+            app.UseMiddleware<CorrelationIdMiddleware>();
+            app.UseSerilogRequestLogging(options =>
+            {
+                options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier);
+                    diagnosticContext.Set("UserId", httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                };
+            });
 
             app.UseStaticFiles();
 
@@ -273,6 +331,9 @@ namespace AITechDigitalTradeHub.Api
 
             app.UseCors(corsPolicy);
 
+            app.UseOutputCache();
+            app.UseMiddleware<OutputCacheInvalidationMiddleware>();
+
 
             app.UseSession();
 
@@ -294,13 +355,11 @@ namespace AITechDigitalTradeHub.Api
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // IMPORTANT: after authentication
-            app.UseMTPermissionCenter();
-
             //Controller/Action/Id?
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ConversationHub>("/hubs/conversations");
             });
 
             //app.UseParbadVirtualGateway();

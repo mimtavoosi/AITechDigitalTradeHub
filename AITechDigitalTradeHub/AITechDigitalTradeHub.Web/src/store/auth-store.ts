@@ -1,13 +1,13 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 type AuthState = {
   accessToken: string | null;
-  refreshToken: string | null;
   user: AuthUser | null;
+  hasHydrated: boolean;
   authDialogMode: "login" | "register" | null;
   setSession: (session: AuthSession) => void;
   clearSession: () => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
   openAuthDialog: (mode: "login" | "register") => void;
   closeAuthDialog: () => void;
 };
@@ -35,35 +35,24 @@ export type AuthUser = {
 
 export type AuthSession = {
   accessToken: string;
-  refreshToken: string;
   user: AuthUser;
 };
 
 export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      accessToken: null,
-      refreshToken: null,
-      user: null,
-      authDialogMode: null,
-      setSession: (session) =>
-        set({
-          accessToken: session.accessToken,
-          refreshToken: session.refreshToken,
-          user: session.user,
-          authDialogMode: null
-        }),
-      clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
-      openAuthDialog: (authDialogMode) => set({ authDialogMode }),
-      closeAuthDialog: () => set({ authDialogMode: null })
-    }),
-    {
-      name: "aitech-auth",
-      partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        user: state.user
-      })
-    }
-  )
+  (set) => ({
+    accessToken: null,
+    user: null,
+    hasHydrated: false,
+    authDialogMode: null,
+    setSession: (session) =>
+      set({
+        accessToken: session.accessToken,
+        user: session.user,
+        authDialogMode: null
+      }),
+    clearSession: () => set({ accessToken: null, user: null }),
+    setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+    openAuthDialog: (authDialogMode) => set({ authDialogMode }),
+    closeAuthDialog: () => set({ authDialogMode: null })
+  })
 );

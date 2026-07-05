@@ -16,7 +16,8 @@ const config: Config = {
         danger: "rgb(var(--color-danger) / <alpha-value>)"
       },
       boxShadow: {
-        panel: "0 1px 2px rgb(15 23 42 / 0.08)"
+        panel: "0 14px 38px rgb(20 35 38 / 0.06)",
+        floating: "0 20px 60px rgb(15 23 42 / 0.12)"
       }
     }
   },
