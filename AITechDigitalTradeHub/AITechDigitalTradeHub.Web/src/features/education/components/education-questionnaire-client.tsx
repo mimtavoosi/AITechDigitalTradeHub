@@ -7,14 +7,16 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
-  BookMarked,
   CalendarClock,
   Check,
   Clock3,
   Compass,
   GraduationCap,
   Layers3,
+  Lightbulb,
   Loader2,
+  Lock,
+  MessageSquareText,
   RotateCcw,
   ShieldCheck,
   Sparkles,
@@ -28,11 +30,12 @@ import { getEducationQuestionnaire, getEducationRecommendations } from "@/featur
 import type {
   CourseDeliveryMode,
   CourseLevel,
-  CourseSummary,
   EducationLearningGoal,
   EducationTargetRole,
   EducationQuestionnaireQuestion,
-  EducationRecommendation
+  EducationRecommendation,
+  EducationRoadmapNode,
+  EducationRoadmapNodeCourse
 } from "@/features/education/types";
 
 type AnswerOption = {
@@ -61,6 +64,7 @@ export function EducationQuestionnaireClient() {
   const [open, setOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
+  const [freeText, setFreeText] = useState("");
 
   const questionnaireQuery = useQuery({
     queryKey: ["education", "questionnaire"],
@@ -75,11 +79,13 @@ export function EducationQuestionnaireClient() {
   }, [questionnaireQuery.data]);
 
   const result = recommendationMutation.data;
-  const totalSteps = questions.length;
-  const currentQuestion = questions[stepIndex];
+  // آخرین مرحله، توضیحات آزاد کاربر است که برای مدل هوش مصنوعی ارسال می‌شود.
+  const totalSteps = questions.length + 1;
+  const isFreeTextStep = stepIndex >= questions.length;
+  const currentQuestion = isFreeTextStep ? undefined : questions[stepIndex];
   const isLastStep = stepIndex >= totalSteps - 1;
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? [] : [];
-  const canProceed = currentQuestion ? currentAnswer.length > 0 : false;
+  const canProceed = isFreeTextStep ? true : currentAnswer.length > 0;
   const answeredCount = questions.filter((question) => (answers[question.id] ?? []).length > 0).length;
 
   function toggleOption(question: AnswerQuestion, optionId: number) {
@@ -109,11 +115,12 @@ export function EducationQuestionnaireClient() {
   function submit() {
     const selectedIds = Object.values(answers).flat();
     const selectedOptions = questions.flatMap((question) => question.options).filter((option) => selectedIds.includes(option.id));
-    recommendationMutation.mutate(buildRecommendationPayload(selectedOptions, selectedIds));
+    recommendationMutation.mutate(buildRecommendationPayload(selectedOptions, selectedIds, freeText));
   }
 
   function resetAll() {
     setAnswers({});
+    setFreeText("");
     setStepIndex(0);
     recommendationMutation.reset();
   }
@@ -126,6 +133,7 @@ export function EducationQuestionnaireClient() {
   const showResult = Boolean(result);
   const showLoadingQuestions = questionnaireQuery.isLoading;
   const showAnalyzing = recommendationMutation.isPending;
+  const submitError = recommendationMutation.error as Error | null;
 
   return (
     <>
@@ -136,16 +144,16 @@ export function EducationQuestionnaireClient() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-xs font-black text-primary">
               <Sparkles className="size-4" />
-              مسیر اختصاصی آموزش
+              مسیر اختصاصی آموزش با هوش مصنوعی
             </div>
             <h2 className="mt-4 text-2xl font-black leading-9 md:text-3xl">از کجا شروع کنم؟</h2>
             <p className="mt-3 text-sm leading-7 text-muted">
-              با پاسخ به چند سوال کوتاه، یک نقشه راه شخصی، مهارت‌های پیشنهادی و دوره‌های نزدیک به هدف شما در همین صفحه نمایش داده می‌شود.
+              با پاسخ به چند سوال کوتاه، هوش مصنوعی آکادمی یک نقشه راه مرحله‌به‌مرحله بر اساس سرفصل دوره‌های سایت برای شما می‌سازد.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <FeaturePill icon={Timer} label="کمتر از ۲ دقیقه" />
               <FeaturePill icon={ShieldCheck} label="بدون نیاز به ثبت‌نام" />
-              <FeaturePill icon={BadgeCheck} label="پیشنهاد فوری و رایگان" />
+              <FeaturePill icon={BadgeCheck} label="تحلیل هوشمند سرفصل‌ها" />
             </div>
           </div>
           <button
@@ -161,11 +169,11 @@ export function EducationQuestionnaireClient() {
 
       {open ? (
         <AppModal
-          title={showResult ? "مسیر یادگیری پیشنهادی شما" : "پیشنهاد مسیر یادگیری"}
+          title={showResult ? "نقشه راه یادگیری شما" : "پیشنهاد مسیر یادگیری"}
           description={showResult ? undefined : "در هر مرحله یکی از گزینه‌های نزدیک به وضعیت خودتان را انتخاب کنید."}
           onClose={closeModal}
           bodyClassName="bg-background/40"
-          className="max-w-3xl"
+          className={showResult ? "max-w-5xl" : "max-w-3xl"}
         >
           {showLoadingQuestions ? (
             <div className="flex min-h-72 flex-col items-center justify-center gap-3 text-muted">
@@ -177,27 +185,38 @@ export function EducationQuestionnaireClient() {
           {!showLoadingQuestions && showAnalyzing ? (
             <div className="flex min-h-72 flex-col items-center justify-center gap-3 text-muted">
               <Sparkles className="size-8 animate-pulse text-primary" />
-              <span className="text-sm font-bold">در حال تحلیل پاسخ‌ها و ساخت مسیر پیشنهادی...</span>
+              <span className="text-sm font-bold">هوش مصنوعی در حال تحلیل پاسخ‌ها و سرفصل دوره‌هاست...</span>
+              <span className="text-xs">این مرحله ممکن است تا یک دقیقه طول بکشد.</span>
             </div>
           ) : null}
 
           {!showLoadingQuestions && !showAnalyzing && !showResult ? (
-            <QuestionStep
-              question={currentQuestion}
-              stepIndex={stepIndex}
-              totalSteps={totalSteps}
-              answeredCount={answeredCount}
-              selectedIds={currentAnswer}
-              onToggle={(optionId) => toggleOption(currentQuestion, optionId)}
-              onBack={goBack}
-              onNext={goNext}
-              canProceed={canProceed}
-              isLastStep={isLastStep}
-              isError={recommendationMutation.isError}
-            />
+            isFreeTextStep ? (
+              <FreeTextStep
+                value={freeText}
+                onChange={setFreeText}
+                stepIndex={stepIndex}
+                totalSteps={totalSteps}
+                onBack={goBack}
+                onSubmit={goNext}
+                errorMessage={submitError?.message ?? null}
+              />
+            ) : (
+              <QuestionStep
+                question={currentQuestion}
+                stepIndex={stepIndex}
+                totalSteps={totalSteps}
+                answeredCount={answeredCount}
+                selectedIds={currentAnswer}
+                onToggle={(optionId) => currentQuestion && toggleOption(currentQuestion, optionId)}
+                onBack={goBack}
+                onNext={goNext}
+                canProceed={canProceed}
+              />
+            )
           ) : null}
 
-          {!showAnalyzing && showResult && result ? <ResultView result={result} onRestart={resetAll} /> : null}
+          {!showAnalyzing && showResult && result ? <RoadmapResultView result={result} onRestart={resetAll} /> : null}
         </AppModal>
       ) : null}
     </>
@@ -213,6 +232,23 @@ function FeaturePill({ icon: Icon, label }: { icon: typeof Timer; label: string 
   );
 }
 
+function StepProgress({ stepIndex, totalSteps, answeredCount }: { stepIndex: number; totalSteps: number; answeredCount?: number }) {
+  const progressPercent = Math.round(((stepIndex + 1) / Math.max(totalSteps, 1)) * 100);
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs font-bold text-muted">
+        <span>
+          مرحله {(stepIndex + 1).toLocaleString("fa-IR")} از {totalSteps.toLocaleString("fa-IR")}
+        </span>
+        {answeredCount != null ? <span>{answeredCount.toLocaleString("fa-IR")} پاسخ ثبت‌شده</span> : null}
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-border/60">
+        <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function QuestionStep({
   question,
   stepIndex,
@@ -222,9 +258,7 @@ function QuestionStep({
   onToggle,
   onBack,
   onNext,
-  canProceed,
-  isLastStep,
-  isError
+  canProceed
 }: {
   question: AnswerQuestion | undefined;
   stepIndex: number;
@@ -235,29 +269,16 @@ function QuestionStep({
   onBack: () => void;
   onNext: () => void;
   canProceed: boolean;
-  isLastStep: boolean;
-  isError: boolean;
 }) {
   if (!question) {
     return <div className="py-10 text-center text-sm text-muted">سوالی برای نمایش وجود ندارد.</div>;
   }
 
   const StepIcon = stepIcons[stepIndex % stepIcons.length];
-  const progressPercent = Math.round(((stepIndex + 1) / Math.max(totalSteps, 1)) * 100);
 
   return (
     <div className="grid gap-6">
-      <div>
-        <div className="flex items-center justify-between text-xs font-bold text-muted">
-          <span>
-            سوال {(stepIndex + 1).toLocaleString("fa-IR")} از {totalSteps.toLocaleString("fa-IR")}
-          </span>
-          <span>{answeredCount.toLocaleString("fa-IR")} پاسخ ثبت‌شده</span>
-        </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-border/60">
-          <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progressPercent}%` }} />
-        </div>
-      </div>
+      <StepProgress stepIndex={stepIndex} totalSteps={totalSteps} answeredCount={answeredCount} />
 
       <div className="rounded-xl border border-border bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
         <div className="flex items-start gap-3">
@@ -294,8 +315,6 @@ function QuestionStep({
         </div>
       </div>
 
-      {isError ? <div className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-xs font-bold text-danger">مشکلی در دریافت پیشنهاد رخ داد، دوباره تلاش کنید.</div> : null}
-
       <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-3 shadow-[0_-10px_28px_rgba(15,23,42,0.06)]">
         <button
           type="button"
@@ -317,7 +336,7 @@ function QuestionStep({
           disabled={!canProceed}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-black text-white transition disabled:opacity-40"
         >
-          {isLastStep ? "دریافت پیشنهاد" : "بعدی"}
+          بعدی
           <ArrowLeft className="size-4" />
         </button>
       </div>
@@ -325,52 +344,138 @@ function QuestionStep({
   );
 }
 
-function ResultView({ result, onRestart }: { result: EducationRecommendation; onRestart: () => void }) {
+function FreeTextStep({
+  value,
+  onChange,
+  stepIndex,
+  totalSteps,
+  onBack,
+  onSubmit,
+  errorMessage
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  stepIndex: number;
+  totalSteps: number;
+  onBack: () => void;
+  onSubmit: () => void;
+  errorMessage: string | null;
+}) {
+  return (
+    <div className="grid gap-6">
+      <StepProgress stepIndex={stepIndex} totalSteps={totalSteps} />
+
+      <div className="rounded-xl border border-border bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+            <MessageSquareText className="size-5" />
+          </span>
+          <div>
+            <h3 className="text-lg font-black leading-8">درباره خودتان و هدفتان بیشتر بگویید</h3>
+            <p className="mt-1 text-xs leading-6 text-muted">
+              اختیاری است، اما هرچه دقیق‌تر بنویسید (سابقه، مهارت‌های فعلی، هدف شغلی یا پروژه‌ای که در ذهن دارید)، نقشه راه دقیق‌تری برای شما ساخته می‌شود.
+            </p>
+          </div>
+        </div>
+
+        <textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          maxLength={1500}
+          rows={5}
+          placeholder="مثلاً: دانشجوی مهندسی صنایع هستم، با اکسل و کمی پایتون کار کرده‌ام و می‌خواهم در حوزه تحلیل داده شاغل شوم..."
+          className="mt-5 w-full resize-y rounded-lg border border-border bg-background/60 p-4 text-sm leading-7 outline-none transition focus:border-primary/60 focus:bg-white"
+        />
+        <div className="mt-1 text-left text-[11px] text-muted">{value.length.toLocaleString("fa-IR")} / ۱٬۵۰۰</div>
+      </div>
+
+      {errorMessage ? (
+        <div className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-xs font-bold leading-6 text-danger">
+          {errorMessage}
+          <span className="mt-1 block font-normal text-danger/80">اگر مشکل ادامه داشت، چند دقیقه بعد دوباره تلاش کنید.</span>
+        </div>
+      ) : null}
+
+      <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-3 shadow-[0_-10px_28px_rgba(15,23,42,0.06)]">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-bold text-muted transition"
+        >
+          <ArrowRight className="size-4" />
+          قبلی
+        </button>
+        <button
+          type="button"
+          onClick={onSubmit}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-black text-white transition"
+        >
+          <Sparkles className="size-4" />
+          ساخت نقشه راه
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RoadmapResultView({ result, onRestart }: { result: EducationRecommendation; onRestart: () => void }) {
+  const phases = useMemo(() => groupNodesByPhase(result.nodes), [result.nodes]);
+
   return (
     <div className="grid gap-6">
       <div className="rounded-xl border border-primary/20 bg-[linear-gradient(135deg,#F7F4FF_0%,#FFFFFF_60%)] p-5">
         <div className="flex items-center gap-2 text-primary">
           <Sparkles className="size-5" />
-          <span className="text-xs font-black">مسیر پیشنهادی شما آماده شد</span>
+          <span className="text-xs font-black">نقشه راه اختصاصی شما آماده شد</span>
         </div>
         <h3 className="mt-2 text-xl font-black leading-8">{result.roadmapTitle}</h3>
         <p className="mt-2 text-sm leading-7 text-muted">{result.roadmapSummary}</p>
+        {result.totalEstimatedWeeks > 0 ? (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-black text-foreground/80">
+            <CalendarClock className="size-4 text-primary" />
+            مدت تقریبی مسیر: {result.totalEstimatedWeeks.toLocaleString("fa-IR")} هفته
+          </div>
+        ) : null}
       </div>
 
-      {result.steps.length ? (
-        <div className="rounded-xl border border-border bg-white p-5">
-          <div className="flex items-center gap-2 font-black">
-            <BookMarked className="size-5 text-primary" />
-            گام‌های پیشنهادی
-          </div>
-          <ol className="relative mt-4 grid gap-5 border-r-2 border-dashed border-primary/20 pr-5">
-            {result.steps.map((step, index) => (
-              <li key={step} className="relative">
-                <span className="absolute -right-[33px] top-0 grid size-7 place-items-center rounded-full bg-primary text-xs font-black text-white">
-                  {(index + 1).toLocaleString("fa-IR")}
+      {phases.length ? (
+        <div className="relative grid gap-0">
+          {phases.map((phase, phaseIndex) => (
+            <div key={phase.order} className="relative flex gap-4">
+              {/* ستون تایم‌لاین: شماره مرحله و خط اتصال به مرحله بعد */}
+              <div className="flex w-10 shrink-0 flex-col items-center">
+                <span className="z-10 grid size-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-black text-white shadow-[0_8px_20px_rgba(126,87,245,0.3)]">
+                  {(phaseIndex + 1).toLocaleString("fa-IR")}
                 </span>
-                <p className="text-sm leading-7">{step}</p>
-              </li>
-            ))}
-          </ol>
+                {phaseIndex < phases.length - 1 ? <span className="w-0.5 grow border-r-2 border-dashed border-primary/30" /> : null}
+              </div>
+
+              <div className={cn("min-w-0 grow pb-6", phase.nodes.length > 1 && "grid gap-4 lg:grid-cols-2")}>
+                {phase.nodes.map((node) => (
+                  <RoadmapNodeCard key={node.id} node={node} allNodes={result.nodes} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : null}
 
-      {result.recommendedCourses.length ? (
-        <div>
-          <div className="mb-3 flex items-center gap-2 font-black">
-            <GraduationCap className="size-5 text-primary" />
-            دوره‌های نزدیک به هدف شما
+      {result.tips.length ? (
+        <div className="rounded-xl border border-accent/25 bg-accent/5 p-5">
+          <div className="flex items-center gap-2 font-black">
+            <Lightbulb className="size-5 text-accent" />
+            توصیه‌های مسیر
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {result.recommendedCourses.map((course) => (
-              <RecommendedCourseCard key={course.id} course={course} />
+          <ul className="mt-3 grid gap-2">
+            {result.tips.map((tip) => (
+              <li key={tip} className="flex items-start gap-2 text-sm leading-7">
+                <Check className="mt-1.5 size-4 shrink-0 text-accent" />
+                {tip}
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
-      ) : (
-        <div className="rounded-lg border border-dashed border-border bg-background/60 p-4 text-center text-sm text-muted">دوره متناسبی برای این مسیر فعلاً منتشر نشده است.</div>
-      )}
+      ) : null}
 
       {result.recommendedTeacherSlots.length ? (
         <div className="flex items-center gap-3 rounded-lg border border-accent/25 bg-accent/5 p-4 text-sm">
@@ -397,25 +502,93 @@ function ResultView({ result, onRestart }: { result: EducationRecommendation; on
   );
 }
 
-function RecommendedCourseCard({ course }: { course: CourseSummary }) {
+function RoadmapNodeCard({ node, allNodes }: { node: EducationRoadmapNode; allNodes: EducationRoadmapNode[] }) {
+  const dependencyTitles = node.dependsOn
+    .map((id) => allNodes.find((item) => item.id === id)?.title)
+    .filter((title): title is string => Boolean(title));
+
   return (
-    <Link href={`/courses/${course.id}`} className="group rounded-lg border border-border bg-white p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_10px_26px_rgba(15,23,42,0.08)]">
-      <h4 className="line-clamp-2 text-sm font-black leading-7 group-hover:text-primary">{course.title}</h4>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
-        <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-2 py-1 font-bold">{formatLevelLabel(course.level)}</span>
-        {course.durationMinutes ? (
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarClock className="size-3.5" />
-            {course.durationMinutes.toLocaleString("fa-IR")} دقیقه
+    <div className={cn("rounded-xl border bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]", node.isOptional ? "border-dashed border-border" : "border-border")}>
+      <div className="flex items-start justify-between gap-3">
+        <h4 className="text-base font-black leading-7">{node.title}</h4>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          {node.isOptional ? <span className="rounded-full bg-background px-2 py-1 text-[11px] font-bold text-muted">اختیاری</span> : null}
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-black text-primary">
+            <CalendarClock className="size-3" />
+            {node.estimatedWeeks.toLocaleString("fa-IR")} هفته
           </span>
-        ) : null}
+        </div>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
-        <span className="font-black text-foreground">{course.priceAmount > 0 ? `${course.priceAmount.toLocaleString("fa-IR")} ریال` : "رایگان"}</span>
-        <span className="text-muted">{course.lessonsCount.toLocaleString("fa-IR")} درس</span>
+
+      {node.description ? <p className="mt-2 text-sm leading-7 text-muted">{node.description}</p> : null}
+
+      {dependencyTitles.length ? (
+        <p className="mt-2 flex items-start gap-1.5 text-[11px] font-bold text-muted">
+          <Lock className="mt-0.5 size-3 shrink-0" />
+          پیش‌نیاز: {dependencyTitles.join("، ")}
+        </p>
+      ) : null}
+
+      {node.skills.length ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {node.skills.map((skill) => (
+            <span key={skill} className="rounded-md bg-background px-2 py-1 text-[11px] font-bold text-foreground/70">
+              {skill}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {node.courses.length ? (
+        <div className="mt-4 grid gap-2 border-t border-border pt-3">
+          <div className="flex items-center gap-1.5 text-xs font-black text-foreground/80">
+            <GraduationCap className="size-4 text-primary" />
+            دوره‌های پیشنهادی این مرحله
+          </div>
+          {node.courses.map((item) => (
+            <RoadmapCourseRow key={item.course.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 border-t border-border pt-3 text-xs leading-6 text-muted">برای این مرحله فعلاً دوره منتشرشده‌ای در آکادمی موجود نیست؛ می‌توانید با منتور جلسه بگذارید.</p>
+      )}
+    </div>
+  );
+}
+
+function RoadmapCourseRow({ item }: { item: EducationRoadmapNodeCourse }) {
+  return (
+    <Link
+      href={`/courses/${item.course.id}`}
+      className="group rounded-lg border border-border bg-background/50 p-3 transition hover:border-primary/40 hover:bg-primary/5"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="line-clamp-1 text-sm font-black group-hover:text-primary">{item.course.title}</span>
+        <span className="shrink-0 text-[11px] font-black text-primary">{item.matchScore.toLocaleString("fa-IR")}٪ تطابق</span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border/60">
+        <div className="h-full rounded-full bg-primary/70" style={{ width: `${Math.max(4, Math.min(100, item.matchScore))}%` }} />
+      </div>
+      {item.reason ? <p className="mt-2 line-clamp-3 text-xs leading-6 text-muted">{item.reason}</p> : null}
+      <div className="mt-2 flex items-center justify-between text-[11px] text-muted">
+        <span className="font-bold">{formatLevelLabel(item.course.level)}</span>
+        <span className="font-black text-foreground">{item.course.priceAmount > 0 ? `${item.course.priceAmount.toLocaleString("fa-IR")} ریال` : "رایگان"}</span>
       </div>
     </Link>
   );
+}
+
+function groupNodesByPhase(nodes: EducationRoadmapNode[]) {
+  const phaseMap = new Map<number, EducationRoadmapNode[]>();
+  for (const node of nodes) {
+    const key = node.order || 1;
+    const bucket = phaseMap.get(key);
+    if (bucket) bucket.push(node);
+    else phaseMap.set(key, [node]);
+  }
+  return [...phaseMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([order, phaseNodes]) => ({ order, nodes: phaseNodes }));
 }
 
 function formatLevelLabel(level: CourseLevel) {
@@ -451,7 +624,7 @@ function normalizeApiQuestion(question: EducationQuestionnaireQuestion): AnswerQ
   };
 }
 
-function buildRecommendationPayload(selectedOptions: AnswerOption[], selectedOptionIds: number[]) {
+function buildRecommendationPayload(selectedOptions: AnswerOption[], selectedOptionIds: number[], freeText: string) {
   const goalOption = selectedOptions.find((option) => option.learningGoal != null);
   const roleOption = selectedOptions.find((option) => option.targetRole != null);
   const levelOption = selectedOptions.find((option) => option.level != null);
@@ -467,7 +640,8 @@ function buildRecommendationPayload(selectedOptions: AnswerOption[], selectedOpt
     weeklyHours: Number(timeOption?.weeklyHoursMax ?? timeOption?.weeklyHoursMin ?? 4),
     preferredMode: normalizeMode(modeOption?.preferredMode) ?? "Recorded",
     skillTagIds,
-    selectedOptionIds
+    selectedOptionIds,
+    freeText: freeText.trim().slice(0, 1500)
   };
 }
 

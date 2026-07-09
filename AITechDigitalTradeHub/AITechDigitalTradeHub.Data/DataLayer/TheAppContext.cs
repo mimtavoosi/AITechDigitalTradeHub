@@ -152,6 +152,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer
         // -----------------------------
         public DbSet<InstructorProfile> InstructorProfiles { get; set; }
         public DbSet<Course> Courses { get; set; }
+        public DbSet<CourseSection> CourseSections { get; set; }
         public DbSet<CourseLesson> CourseLessons { get; set; }
         public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
         public DbSet<CourseLessonProgress> CourseLessonProgresses { get; set; }
@@ -1217,11 +1218,30 @@ namespace AITechDigitalTradeHub.Data.DataLayer
             modelBuilder.Entity<EducationQuestionnaireOption>()
                 .HasIndex(x => x.SkillTagId);
 
+            modelBuilder.Entity<CourseSection>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.Sections)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseSection>()
+                .HasIndex(x => new { x.CourseId, x.SortOrder });
+
             modelBuilder.Entity<CourseLesson>()
                 .HasOne(x => x.Course)
                 .WithMany(x => x.Lessons)
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Restrict به‌جای SetNull تا با Cascade مسیرهای Course→Section و Course→Lesson چرخه حذف در SQL Server ایجاد نشود.
+            modelBuilder.Entity<CourseLesson>()
+                .HasOne(x => x.Section)
+                .WithMany(x => x.Lessons)
+                .HasForeignKey(x => x.SectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseLesson>()
+                .HasIndex(x => x.SectionId);
 
             modelBuilder.Entity<CourseLesson>()
                 .HasOne(x => x.FileUpload)
