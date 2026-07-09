@@ -21,12 +21,14 @@ namespace AITechDigitalTradeHub.Api.Controllers
         private readonly IEducationRep _educationRep;
         private readonly TheAppContext _context;
         private readonly IUserNotificationService _userNotificationService;
+        private readonly IAiRoadmapService _aiRoadmapService;
 
-        public EducationController(IEducationRep educationRep, TheAppContext context, IUserNotificationService userNotificationService)
+        public EducationController(IEducationRep educationRep, TheAppContext context, IUserNotificationService userNotificationService, IAiRoadmapService aiRoadmapService)
         {
             _educationRep = educationRep;
             _context = context;
             _userNotificationService = userNotificationService;
+            _aiRoadmapService = aiRoadmapService;
         }
 
         [HttpGet("courses")]
@@ -373,8 +375,110 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 return Unauthorized();
             }
 
+            if (request.SectionId.HasValue)
+            {
+                var sectionBelongsToCourse = await _context.CourseSections
+                    .AnyAsync(x => x.ID == request.SectionId.Value && x.CourseId == id && x.DeleteDate == null);
+                if (!sectionBelongsToCourse)
+                {
+                    return BadRequest(new ApiErrorResponse { ErrorMessage = "سرفصل انتخاب‌شده متعلق به این دوره نیست." });
+                }
+            }
+
             var result = await _educationRep.AddLessonAsync(id, userId, request.ToEntity());
             return result.Status ? Ok(result) : BadRequest(result);
+        }
+
+        [Authorize(Policy = PermissionPolicyNames.Prefix + PermissionKeys.EducationCourseManage)]
+        [HttpPost("courses/{id:long}/sections")]
+        public async Task<IActionResult> AddSection(long id, [FromBody] SaveCourseSectionRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0)
+            {
+                return Unauthorized();
+            }
+
+            var ownsCourse = await _context.Courses.AnyAsync(x => x.ID == id && x.InstructorUserId == userId);
+            if (!ownsCourse)
+            {
+                return NotFound(new ApiErrorResponse { ErrorMessage = "دوره پیدا نشد یا متعلق به شما نیست." });
+            }
+
+            var now = DateTime.UtcNow;
+            var section = new CourseSection
+            {
+                CourseId = id,
+                Title = request.Title.Trim(),
+                Description = request.Description,
+                LearningObjective = request.LearningObjective,
+                SortOrder = request.SortOrder,
+                DurationMinutes = request.DurationMinutes,
+                CreateDate = now,
+                UpdateDate = now,
+                IsActive = true,
+                CreatorId = userId
+            };
+            await _context.CourseSections.AddAsync(section);
+            await _context.SaveChangesAsync();
+            return Ok(new AITechDigitalTradeHub.Data.ResultObjects.BitResultObject { ID = section.ID });
+        }
+
+        [Authorize(Policy = PermissionPolicyNames.Prefix + PermissionKeys.EducationCourseManage)]
+        [HttpPut("sections/{sectionId:long}")]
+        public async Task<IActionResult> UpdateSection(long sectionId, [FromBody] SaveCourseSectionRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0)
+            {
+                return Unauthorized();
+            }
+
+            var section = await _context.CourseSections
+                .Include(x => x.Course)
+                .SingleOrDefaultAsync(x => x.ID == sectionId && x.DeleteDate == null);
+            if (section == null || section.Course.InstructorUserId != userId)
+            {
+                return NotFound(new ApiErrorResponse { ErrorMessage = "سرفصل پیدا نشد یا متعلق به شما نیست." });
+            }
+
+            section.Title = request.Title.Trim();
+            section.Description = request.Description;
+            section.LearningObjective = request.LearningObjective;
+            section.SortOrder = request.SortOrder;
+            section.DurationMinutes = request.DurationMinutes;
+            section.UpdateDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return Ok(new AITechDigitalTradeHub.Data.ResultObjects.BitResultObject { ID = section.ID });
+        }
+
+        [Authorize(Policy = PermissionPolicyNames.Prefix + PermissionKeys.EducationCourseManage)]
+        [HttpDelete("sections/{sectionId:long}")]
+        public async Task<IActionResult> DeleteSection(long sectionId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0)
+            {
+                return Unauthorized();
+            }
+
+            var section = await _context.CourseSections
+                .Include(x => x.Course)
+                .Include(x => x.Lessons)
+                .SingleOrDefaultAsync(x => x.ID == sectionId && x.DeleteDate == null);
+            if (section == null || section.Course.InstructorUserId != userId)
+            {
+                return NotFound(new ApiErrorResponse { ErrorMessage = "سرفصل پیدا نشد یا متعلق به شما نیست." });
+            }
+
+            foreach (var lesson in section.Lessons)
+            {
+                lesson.SectionId = null;
+            }
+            section.DeleteDate = DateTime.UtcNow;
+            section.IsActive = false;
+            await _context.SaveChangesAsync();
+            return Ok(new AITechDigitalTradeHub.Data.ResultObjects.BitResultObject { ID = section.ID });
         }
 
         [Authorize(Policy = PermissionPolicyNames.Prefix + PermissionKeys.EducationCourseRead)]
@@ -658,101 +762,155 @@ namespace AITechDigitalTradeHub.Api.Controllers
         }
 
         [HttpPost("recommendations")]
-        public async Task<IActionResult> Recommend([FromBody] EducationQuestionnaireRequest request)
+        public async Task<IActionResult> Recommend([FromBody] EducationQuestionnaireRequest request, CancellationToken cancellationToken)
         {
             var selectedOptions = request.SelectedOptionIds.Count == 0
                 ? new List<EducationQuestionnaireOption>()
                 : await _context.EducationQuestionnaireOptions
                     .AsNoTracking()
+                    .Include(x => x.Question)
                     .Where(x => request.SelectedOptionIds.Contains(x.ID))
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
-            CourseDeliveryMode? deliveryMode = request.PreferredMode.ToLowerInvariant() switch
-            {
-                "live" or "liveonline" => CourseDeliveryMode.LiveOnline,
-                "inperson" => CourseDeliveryMode.InPerson,
-                "hybrid" => CourseDeliveryMode.Hybrid,
-                "recorded" => CourseDeliveryMode.Recorded,
-                _ => selectedOptions.FirstOrDefault(x => x.PreferredMode.HasValue)?.PreferredMode
-            };
-
-            var learningGoal = request.LearningGoal ?? selectedOptions.FirstOrDefault(x => x.LearningGoal.HasValue)?.LearningGoal;
-            var targetRole = request.TargetRole ?? selectedOptions.FirstOrDefault(x => x.TargetRole.HasValue)?.TargetRole;
-            var optionLevel = selectedOptions.FirstOrDefault(x => x.Level.HasValue)?.Level;
-            var requestedLevel = optionLevel ?? request.Level;
-            var optionSkillIds = selectedOptions.Where(x => x.SkillTagId.HasValue).Select(x => x.SkillTagId!.Value);
-            var requestedSkillIds = request.SkillTagIds.Concat(optionSkillIds).Distinct().ToHashSet();
+            var requestedLevel = selectedOptions.FirstOrDefault(x => x.Level.HasValue)?.Level ?? request.Level;
             var weeklyHours = request.WeeklyHours > 0
                 ? request.WeeklyHours
                 : selectedOptions.FirstOrDefault(x => x.WeeklyHoursMin.HasValue || x.WeeklyHoursMax.HasValue) is { } hoursOption
                     ? Math.Max(1, ((hoursOption.WeeklyHoursMin ?? hoursOption.WeeklyHoursMax ?? 4) + (hoursOption.WeeklyHoursMax ?? hoursOption.WeeklyHoursMin ?? 4)) / 2)
                     : 4;
-            var goal = string.IsNullOrWhiteSpace(request.Goal) ? "ورود به مسیر هوش مصنوعی" : request.Goal.Trim();
-            var normalizedGoal = goal.ToLowerInvariant();
 
             var courses = await _context.Courses
                 .AsNoTracking()
                 .Include(x => x.InstructorUser)
                 .Include(x => x.Category)
+                .Include(x => x.Sections.Where(s => s.DeleteDate == null))
                 .Include(x => x.Lessons)
                 .Include(x => x.Enrollments)
-                .Include(x => x.SkillTags)
-                .Include(x => x.PrerequisiteTags)
-                .Include(x => x.TargetRoleTags)
+                .Include(x => x.SkillTags).ThenInclude(x => x.Tag)
                 .Where(x => x.Status == CourseStatus.Published)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-            int Score(Course course)
+            if (courses.Count == 0)
             {
-                var score = 0;
-                if (learningGoal.HasValue && course.LearningGoal == learningGoal) score += 18;
-                if (targetRole.HasValue && course.TargetRole == targetRole) score += 18;
-                if (course.Level == requestedLevel) score += 16;
-                else if (Math.Abs((int)course.Level - (int)requestedLevel) == 1) score += 7;
-
-                if (deliveryMode.HasValue)
+                return StatusCode(StatusCodes.Status502BadGateway, new ApiErrorResponse
                 {
-                    if (course.DeliveryMode == deliveryMode) score += 12;
-                    else if (course.DeliveryMode == CourseDeliveryMode.Hybrid || deliveryMode == CourseDeliveryMode.Hybrid) score += 6;
-                }
-
-                if (course.WeeklyHoursMin.HasValue || course.WeeklyHoursMax.HasValue)
-                {
-                    var min = course.WeeklyHoursMin ?? 1;
-                    var max = course.WeeklyHoursMax ?? 40;
-                    score += weeklyHours >= min && weeklyHours <= max ? 10 : 3;
-                }
-                else
-                {
-                    score += 4;
-                }
-
-                var matchingSkills = course.SkillTags.Where(x => requestedSkillIds.Contains(x.TagId)).Sum(x => Math.Max(1, (int)x.Weight));
-                score += matchingSkills * 10;
-                var matchingRoles = course.TargetRoleTags.Where(x => requestedSkillIds.Contains(x.TagId)).Sum(x => Math.Max(1, (int)x.Weight));
-                score += matchingRoles * 6;
-
-                if (learningGoal == EducationLearningGoal.BuildProject && course.ProjectBased) score += 8;
-                if (weeklyHours <= 4 && course.RequiresMentor) score += 4;
-                if (!string.IsNullOrWhiteSpace(goal) &&
-                    (course.Title.ToLowerInvariant().Contains(normalizedGoal) ||
-                     (course.Description?.ToLowerInvariant().Contains(normalizedGoal) ?? false) ||
-                     (course.LearningOutcomes?.ToLowerInvariant().Contains(normalizedGoal) ?? false)))
-                {
-                    score += 8;
-                }
-
-                score += Math.Max(0, 5 - (course.DifficultyScore ?? 3));
-                return score;
+                    ErrorMessage = "هنوز دوره منتشرشده‌ای برای ساخت مسیر یادگیری وجود ندارد.",
+                    TraceId = HttpContext.TraceIdentifier
+                });
             }
 
-            var recommendedCourses = courses
-                .Select(course => new { Course = course, Score = Score(course) })
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.Course.PriceAmount)
-                .ThenByDescending(x => x.Course.PublishedAt ?? x.Course.CreateDate)
+            var aiRequest = new AiRoadmapRequest
+            {
+                Profile = new AiRoadmapProfile
+                {
+                    Answers = selectedOptions
+                        .GroupBy(x => x.QuestionId)
+                        .Select(group => new AiRoadmapProfileAnswer
+                        {
+                            Question = group.First().Question?.Title ?? "پرسش پرسشنامه",
+                            Answer = string.Join("، ", group.Select(option => option.Label))
+                        })
+                        .ToList(),
+                    FreeText = request.FreeText?.Trim() ?? string.Empty,
+                    Goal = request.Goal?.Trim() ?? string.Empty,
+                    Level = requestedLevel.ToString(),
+                    WeeklyHours = weeklyHours,
+                    PreferredMode = request.PreferredMode
+                },
+                Catalog = new AiRoadmapCatalog
+                {
+                    Categories = courses
+                        .Where(x => x.Category != null)
+                        .GroupBy(x => x.CategoryId)
+                        .Select(group => new AiRoadmapCatalogCategory
+                        {
+                            Id = group.Key,
+                            Name = group.First().Category.CategoryName
+                        })
+                        .ToList(),
+                    Courses = courses.Select(course => new AiRoadmapCatalogCourse
+                    {
+                        Id = course.ID,
+                        Title = course.Title,
+                        Category = course.Category?.CategoryName ?? string.Empty,
+                        Level = course.Level.ToString(),
+                        DeliveryMode = course.DeliveryMode.ToString(),
+                        PriceAmount = course.PriceAmount,
+                        DurationMinutes = course.DurationMinutes,
+                        EstimatedWeeks = course.EstimatedWeeks,
+                        WeeklyHoursMin = course.WeeklyHoursMin,
+                        WeeklyHoursMax = course.WeeklyHoursMax,
+                        ProjectBased = course.ProjectBased,
+                        RequiresMentor = course.RequiresMentor,
+                        Description = course.Description ?? string.Empty,
+                        LearningOutcomes = course.LearningOutcomes ?? string.Empty,
+                        PrerequisitesSummary = course.PrerequisitesSummary ?? string.Empty,
+                        Skills = course.SkillTags.Where(x => x.Tag != null).Select(x => x.Tag.Name).ToList(),
+                        Lessons = course.Lessons
+                            .Where(x => !x.SectionId.HasValue)
+                            .OrderBy(x => x.SortOrder)
+                            .Select(x => x.Title)
+                            .ToList(),
+                        Sections = course.Sections
+                            .OrderBy(x => x.SortOrder)
+                            .Select(section => new AiRoadmapCatalogSection
+                            {
+                                Title = section.Title,
+                                Objective = section.LearningObjective ?? string.Empty,
+                                Lessons = course.Lessons
+                                    .Where(x => x.SectionId == section.ID)
+                                    .OrderBy(x => x.SortOrder)
+                                    .Select(x => x.Title)
+                                    .ToList()
+                            })
+                            .ToList()
+                    }).ToList()
+                }
+            };
+
+            AiRoadmapResult roadmap;
+            try
+            {
+                roadmap = await _aiRoadmapService.GenerateAsync(aiRequest, cancellationToken);
+            }
+            catch (AiRoadmapException exc)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new ApiErrorResponse
+                {
+                    ErrorMessage = exc.Message,
+                    TraceId = HttpContext.TraceIdentifier
+                });
+            }
+
+            var coursesById = courses.ToDictionary(x => x.ID, CourseListItemResponse.FromEntity);
+            var nodes = roadmap.Nodes.Select(node => new EducationRoadmapNodeResponse
+            {
+                Id = node.Id,
+                Title = node.Title,
+                Description = node.Description,
+                Order = node.Order,
+                DependsOn = node.DependsOn,
+                Skills = node.Skills,
+                EstimatedWeeks = node.EstimatedWeeks,
+                IsOptional = node.IsOptional,
+                Courses = node.Courses
+                    .Where(x => coursesById.ContainsKey(x.CourseId))
+                    .OrderByDescending(x => x.MatchScore)
+                    .Select(x => new EducationRoadmapNodeCourseResponse
+                    {
+                        Course = coursesById[x.CourseId],
+                        Reason = x.Reason,
+                        MatchScore = x.MatchScore
+                    })
+                    .ToList()
+            }).ToList();
+
+            var recommendedCourses = nodes
+                .SelectMany(node => node.Courses)
+                .OrderByDescending(x => x.MatchScore)
                 .Select(x => x.Course)
-                .Take(4)
+                .DistinctBy(x => x.Id)
+                .Take(6)
                 .ToList();
 
             var firstInstructorId = recommendedCourses.FirstOrDefault()?.InstructorUserId ?? 0;
@@ -760,44 +918,14 @@ namespace AITechDigitalTradeHub.Api.Controllers
                 ? await _educationRep.GetInstructorSlotsAsync(firstInstructorId, true, 1, 3)
                 : null;
 
-            var pace = weeklyHours >= 10 ? "فشرده" : weeklyHours >= 5 ? "منظم" : "آرام";
-            var targetRoleText = targetRole switch
-            {
-                EducationTargetRole.AiDeveloper => "توسعه‌دهنده هوش مصنوعی",
-                EducationTargetRole.DataAnalyst => "تحلیلگر داده",
-                EducationTargetRole.MlEngineer => "مهندس یادگیری ماشین",
-                EducationTargetRole.ProductManager => "مدیر محصول AI",
-                _ => "مسیر انتخاب‌شده"
-            };
-            var firstStep = requestedLevel switch
-            {
-                CourseLevel.Advanced => $"تعریف خروجی تخصصی برای هدف «{goal}» و انتخاب یک پروژه قابل ارائه",
-                CourseLevel.Intermediate => $"مرور پیش‌نیازهای هدف «{goal}» و انتخاب یک نمونه‌کار قابل تکمیل",
-                _ => $"شروع از مفاهیم پایه مرتبط با هدف «{goal}»"
-            };
-            var practiceStep = weeklyHours >= 8
-                ? "هر هفته یک تمرین عملی و یک جلسه مرور خروجی با مدرس یا منتور داشته باشید"
-                : "هر هفته یک تمرین کوچک انجام دهید و سوال‌های اصلی را برای جلسه منتورینگ جمع کنید";
-            var finalStep = requestedLevel == CourseLevel.Advanced
-                ? "در پایان مسیر، خروجی را به رزومه و پروفایل پروژه‌ای اضافه کنید"
-                : "بعد از پایان دوره اول، مسیر بعدی را با آزمون سطح و بازخورد مدرس انتخاب کنید";
             var response = new EducationRecommendationResponse
             {
-                RoadmapTitle = requestedLevel switch
-                {
-                    CourseLevel.Advanced => $"مسیر تخصصی {targetRoleText}",
-                    CourseLevel.Intermediate => $"مسیر ارتقای مهارت برای {targetRoleText}",
-                    _ => $"مسیر شروع برای {targetRoleText}"
-                },
-                RoadmapSummary = $"برای هدف «{goal}» با سرعت {pace} و حدود {weeklyHours} ساعت در هفته، ترکیب دوره، تمرین و کلاس خصوصی پیشنهاد می‌شود.",
-                Steps = new List<string>
-                {
-                    firstStep,
-                    "گذراندن دوره پیشنهادی و ثبت پیشرفت هر هفته",
-                    practiceStep,
-                    finalStep
-                },
-                RecommendedCourses = recommendedCourses.Select(CourseListItemResponse.FromEntity).ToList(),
+                RoadmapTitle = roadmap.RoadmapTitle,
+                RoadmapSummary = roadmap.RoadmapSummary,
+                TotalEstimatedWeeks = roadmap.TotalEstimatedWeeks,
+                Nodes = nodes,
+                Tips = roadmap.Tips,
+                RecommendedCourses = recommendedCourses,
                 RecommendedTeacherSlots = slotsResult?.Results.Select(TeacherSlotResponse.FromEntity).ToList() ?? new List<TeacherSlotResponse>()
             };
 

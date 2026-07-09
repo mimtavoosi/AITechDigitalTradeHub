@@ -174,6 +174,8 @@ namespace AITechDigitalTradeHub.Api
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.Configure<SmsSenderOptions>(builder.Configuration.GetSection("SmsSender"));
             builder.Services.AddHttpClient<ISmsSender, FarazSmsSender>();
+            builder.Services.Configure<AiRoadmapOptions>(builder.Configuration.GetSection("AiRoadmap"));
+            builder.Services.AddHttpClient<IAiRoadmapService, AiRoadmapService>();
             builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
             builder.Services.AddScoped<IRoleRep, RoleRep>();
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
@@ -282,6 +284,11 @@ namespace AITechDigitalTradeHub.Api
             if (app.Configuration.GetValue("SeedIdentityDataOnStartup", false))
             {
                 await IdentityDataSeeder.SeedAsync(app.Services);
+            }
+
+            if (app.Configuration.GetValue("SeedEducationDataOnStartup", false))
+            {
+                await EducationDataSeeder.SeedAsync(app.Services);
             }
 
 

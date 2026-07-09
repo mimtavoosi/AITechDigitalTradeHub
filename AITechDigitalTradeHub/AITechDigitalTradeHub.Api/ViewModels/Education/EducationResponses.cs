@@ -67,9 +67,37 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
         }
     }
 
+    public class CourseSectionResponse
+    {
+        public long Id { get; set; }
+        public long CourseId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? LearningObjective { get; set; }
+        public int SortOrder { get; set; }
+        public int? DurationMinutes { get; set; }
+        public List<CourseLessonResponse> Lessons { get; set; } = new();
+
+        public static CourseSectionResponse FromEntity(CourseSection section)
+        {
+            return new CourseSectionResponse
+            {
+                Id = section.ID,
+                CourseId = section.CourseId,
+                Title = section.Title,
+                Description = section.Description,
+                LearningObjective = section.LearningObjective,
+                SortOrder = section.SortOrder,
+                DurationMinutes = section.DurationMinutes,
+                Lessons = section.Lessons?.OrderBy(x => x.SortOrder).Select(CourseLessonResponse.FromEntity).ToList() ?? new List<CourseLessonResponse>()
+            };
+        }
+    }
+
     public class CourseDetailResponse : CourseListItemResponse
     {
         public long? OrganizationId { get; set; }
+        public List<CourseSectionResponse> Sections { get; set; } = new();
         public List<CourseLessonResponse> Lessons { get; set; } = new();
 
         public static new CourseDetailResponse FromEntity(Course course)
@@ -104,6 +132,7 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
                 RequiresMentor = course.RequiresMentor,
                 LearningOutcomes = course.LearningOutcomes,
                 PrerequisitesSummary = course.PrerequisitesSummary,
+                Sections = course.Sections?.OrderBy(x => x.SortOrder).Select(CourseSectionResponse.FromEntity).ToList() ?? new List<CourseSectionResponse>(),
                 Lessons = course.Lessons?.OrderBy(x => x.SortOrder).Select(CourseLessonResponse.FromEntity).ToList() ?? new List<CourseLessonResponse>()
             };
         }
@@ -113,6 +142,7 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
     {
         public long Id { get; set; }
         public long CourseId { get; set; }
+        public long? SectionId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public LessonContentType ContentType { get; set; }
@@ -127,6 +157,7 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
             {
                 Id = lesson.ID,
                 CourseId = lesson.CourseId,
+                SectionId = lesson.SectionId,
                 Title = lesson.Title,
                 Description = lesson.Description,
                 ContentType = lesson.ContentType,
@@ -301,9 +332,31 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
     {
         public string RoadmapTitle { get; set; } = string.Empty;
         public string RoadmapSummary { get; set; } = string.Empty;
-        public List<string> Steps { get; set; } = new();
+        public int TotalEstimatedWeeks { get; set; }
+        public List<EducationRoadmapNodeResponse> Nodes { get; set; } = new();
+        public List<string> Tips { get; set; } = new();
         public List<CourseListItemResponse> RecommendedCourses { get; set; } = new();
         public List<TeacherSlotResponse> RecommendedTeacherSlots { get; set; } = new();
+    }
+
+    public class EducationRoadmapNodeResponse
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int Order { get; set; }
+        public List<string> DependsOn { get; set; } = new();
+        public List<string> Skills { get; set; } = new();
+        public int EstimatedWeeks { get; set; }
+        public bool IsOptional { get; set; }
+        public List<EducationRoadmapNodeCourseResponse> Courses { get; set; } = new();
+    }
+
+    public class EducationRoadmapNodeCourseResponse
+    {
+        public CourseListItemResponse Course { get; set; } = default!;
+        public string Reason { get; set; } = string.Empty;
+        public int MatchScore { get; set; }
     }
 
     public class EducationQuestionnaireQuestionResponse

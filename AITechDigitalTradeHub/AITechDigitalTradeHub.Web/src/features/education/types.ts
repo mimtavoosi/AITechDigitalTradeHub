@@ -234,6 +234,7 @@ export type EducationQuestionnairePayload = {
   preferredMode: "Recorded" | "LiveOnline" | "InPerson" | "Hybrid";
   skillTagIds?: number[];
   selectedOptionIds?: number[];
+  freeText?: string;
 };
 
 export type EducationQuestionnaireOption = {
@@ -262,10 +263,30 @@ export type EducationQuestionnaireQuestion = {
   options: EducationQuestionnaireOption[];
 };
 
+export type EducationRoadmapNodeCourse = {
+  course: CourseSummary;
+  reason: string;
+  matchScore: number;
+};
+
+export type EducationRoadmapNode = {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  dependsOn: string[];
+  skills: string[];
+  estimatedWeeks: number;
+  isOptional: boolean;
+  courses: EducationRoadmapNodeCourse[];
+};
+
 export type EducationRecommendation = {
   roadmapTitle: string;
   roadmapSummary: string;
-  steps: string[];
+  totalEstimatedWeeks: number;
+  nodes: EducationRoadmapNode[];
+  tips: string[];
   recommendedCourses: CourseSummary[];
   recommendedTeacherSlots: TeacherSlot[];
 };

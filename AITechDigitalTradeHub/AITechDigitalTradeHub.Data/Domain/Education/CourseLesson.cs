@@ -9,6 +9,9 @@ namespace AITechDigitalTradeHub.Data.Domain
     {
         public long CourseId { get; set; }
 
+        /// <summary>سرفصل والد؛ درس می‌تواند بدون سرفصل هم باشد.</summary>
+        public long? SectionId { get; set; }
+
         [MaxLength(180)]
         public string Title { get; set; } = string.Empty;
 
@@ -21,6 +24,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public bool IsPreview { get; set; }
 
         public Course Course { get; set; } = default!;
+        public CourseSection? Section { get; set; }
         public FileUpload? FileUpload { get; set; }
     }
 }

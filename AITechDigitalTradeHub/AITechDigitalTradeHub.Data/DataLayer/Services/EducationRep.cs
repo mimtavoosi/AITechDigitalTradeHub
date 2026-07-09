@@ -143,6 +143,7 @@ namespace AITechDigitalTradeHub.Data.DataLayer.Services
                     .Include(x => x.InstructorUser)
                     .Include(x => x.Organization)
                     .Include(x => x.Category)
+                    .Include(x => x.Sections.Where(s => s.DeleteDate == null)).ThenInclude(s => s.Lessons)
                     .Include(x => x.Lessons)
                     .Include(x => x.Enrollments)
                     .Include(x => x.SkillTags)

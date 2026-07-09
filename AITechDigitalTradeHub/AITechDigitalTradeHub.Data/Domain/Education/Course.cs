@@ -51,6 +51,7 @@ namespace AITechDigitalTradeHub.Data.Domain
         public Organization? Organization { get; set; }
         public Category Category { get; set; } = default!;
         public FileUpload? CoverFile { get; set; }
+        public ICollection<CourseSection> Sections { get; set; } = new List<CourseSection>();
         public ICollection<CourseLesson> Lessons { get; set; } = new List<CourseLesson>();
         public ICollection<CourseEnrollment> Enrollments { get; set; } = new List<CourseEnrollment>();
         public ICollection<CourseSkillTag> SkillTags { get; set; } = new List<CourseSkillTag>();

@@ -86,6 +86,7 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
         public long? FileUploadId { get; set; }
         public string? ExternalUrl { get; set; }
         public bool IsPreview { get; set; }
+        public long? SectionId { get; set; }
 
         public CourseLesson ToEntity()
         {
@@ -98,9 +99,26 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
                 DurationMinutes = DurationMinutes,
                 FileUploadId = FileUploadId,
                 ExternalUrl = ExternalUrl,
-                IsPreview = IsPreview
+                IsPreview = IsPreview,
+                SectionId = SectionId
             };
         }
+    }
+
+    public class SaveCourseSectionRequest
+    {
+        [Required, MaxLength(180)]
+        public string Title { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+
+        [MaxLength(600)]
+        public string? LearningObjective { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int SortOrder { get; set; }
+
+        public int? DurationMinutes { get; set; }
     }
 
     public class CreateTeacherSlotRequest
@@ -168,6 +186,9 @@ namespace AITechDigitalTradeHub.Api.ViewModels.Education
         public string PreferredMode { get; set; } = "Recorded";
         public List<long> SkillTagIds { get; set; } = new();
         public List<long> SelectedOptionIds { get; set; } = new();
+
+        [MaxLength(1500)]
+        public string FreeText { get; set; } = string.Empty;
     }
 
     public class UpdateTeacherBookingStatusRequest
